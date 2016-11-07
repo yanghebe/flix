@@ -1,8 +1,7 @@
-language: java
+language: scala
 
-env:
-  global:
-    - ANT_OPTS="-Xss8m -Xmx2048m"
+scala:
+  - 2.11.7
 
 jdk:
    - oraclejdk8
@@ -10,16 +9,8 @@ jdk:
 os:
     - linux
 
-before_install:
-  - ulimit -s 32768
-  - ulimit -a
-  - env
-  - pushd .
-  - cd
-  - wget http://downloads.typesafe.com/scala/2.11.7/scala-2.11.7.tgz
-  - tar xzf scala-2.11.7.tgz
-  - export SCALA_HOME=`pwd`/scala-2.11.7
-  - export PATH=$SCALA_HOME/bin:$PATH
-  - popd
-  - scalac -version
-  - which scalac
+script:
+  - sbt clean coverage test coverageReport
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
