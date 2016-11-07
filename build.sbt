@@ -1,3 +1,5 @@
+scalaVersion := "2.11.7"
+
 lazy val commonSettings = Seq(
   scalaVersion := "2.11.7",
   organization := "ca.uwaterloo.flix",
