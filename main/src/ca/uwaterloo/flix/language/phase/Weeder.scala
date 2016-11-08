@@ -568,6 +568,18 @@ object Weeder {
             }
           }
 
+        case ParsedAst.Expression.NativeFieldOrMethod(sp1, fqn, sp2) =>
+          /*
+           * Checks for `IllegalNativeFieldOrMethod`.
+           */
+          if (fqn.size == 1) {
+            return WeederError.IllegalNativeFieldOrMethod(fqn.head, mkSL(sp1, sp2)).toFailure
+          }
+
+          val className = fqn.dropRight(1).mkString(".")
+          val memberName = fqn.last
+          WeededAst.Expression.NativeFieldOrMethod(className, memberName, mkSL(sp1, sp2)).toSuccess
+
         case ParsedAst.Expression.Ascribe(exp, tpe, sp2) =>
           visit(exp) map {
             case e => WeededAst.Expression.Ascribe(e, Types.weed(tpe), mkSL(leftMostSourcePosition(exp), sp2))
@@ -947,6 +959,7 @@ object Weeder {
     case ParsedAst.Expression.PutIndex(sp1, _, _, _, _) => sp1
     case ParsedAst.Expression.Existential(sp1, _, _, _) => sp1
     case ParsedAst.Expression.Universal(sp1, _, _, _) => sp1
+    case ParsedAst.Expression.NativeFieldOrMethod(sp1, _, _) => sp1
     case ParsedAst.Expression.Ascribe(e1, _, _) => leftMostSourcePosition(e1)
     case ParsedAst.Expression.UserError(sp1, _) => sp1
     case ParsedAst.Expression.Bot(sp1, sp2) => sp1

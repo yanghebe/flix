@@ -445,6 +445,9 @@ object Namer {
           case e => NamedAst.Expression.Existential(ps, e, loc)
         }
 
+      case WeededAst.Expression.NativeFieldOrMethod(className, memberName, loc) =>
+        ???
+
       case WeededAst.Expression.Ascribe(exp, tpe, loc) => namer(exp, env0, tenv0) map {
         case e => NamedAst.Expression.Ascribe(e, Types.namer(tpe, tenv0), loc)
       }
@@ -663,5 +666,52 @@ object Namer {
     }
 
   }
+
+
+//
+//  sealed trait NativeRef
+//  -
+//    -  object NativeRef {
+//    -
+//      -    case class FieldRef(field: Field) extends NativeRef
+//    -
+//      -    case class MethodRef(method: Method) extends NativeRef
+//    -
+//      -  }
+//  -
+//    -  //  TODO: DOC
+//  -  def lookupNativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation): Validation[NativeRef, ResolverError] = try {
+//    -    // retrieve class object.
+//      -    val clazz = Class.forName(className)
+//    -
+//      -    // retrieve static fields.
+//    -    val fields = clazz.getDeclaredFields.toList.filter {
+//      -      case field => Modifier.isStatic(field.getModifiers) && field.getName == memberName
+//      -    }
+//    -
+//      -    // retrieve static methods.
+//    -    val methods = clazz.getDeclaredMethods.toList.filter {
+//      -      case method => Modifier.isStatic(method.getModifiers) && method.getName == memberName
+//      -    }
+//    -
+//      -    // disambiguate member.
+//    -    if (fields.isEmpty && methods.isEmpty) {
+//      -      // at least one field and method share the same name.
+//        -      UnresolvedFieldOrMethod(className, memberName, loc).toFailure
+//      -    } else if (fields.size + methods.size > 2) {
+//      -      // multiple fields/methods share the same name.
+//        -      AmbiguousFieldOrMethod(className, memberName, loc).toFailure
+//      -    } else {
+//      -      if (fields.nonEmpty) {
+//        -        // resolves to a field.
+//          -        NativeRef.FieldRef(fields.head).toSuccess
+//        -      } else {
+//        -        // resolved to a method.
+//          -        NativeRef.MethodRef(methods.head).toSuccess
+//        -      }
+//      -    }
+//    -  } catch {
+//    -    case ex: ClassNotFoundException => UnresolvedNativeClass(className, loc).toFailure
+//    -  }
 
 }

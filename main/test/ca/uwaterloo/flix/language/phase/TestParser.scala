@@ -18,8 +18,8 @@ package ca.uwaterloo.flix.language.phase
 
 import ca.uwaterloo.flix.TestUtils
 import ca.uwaterloo.flix.api.{Flix, RuleException}
-import ca.uwaterloo.flix.language.errors.{ResolutionError, TypeError}
-import ca.uwaterloo.flix.util.{InternalCompilerException, Options}
+import ca.uwaterloo.flix.language.errors.ResolutionError
+import ca.uwaterloo.flix.util.Options
 import org.scalatest.FunSuite
 
 class TestParser extends FunSuite with TestUtils {
@@ -1535,6 +1535,26 @@ class TestParser extends FunSuite with TestUtils {
     intercept[scala.NotImplementedError] {
       run(input)
     }
+  }
+
+  test("Expression.NativeField.01") {
+    val input = "def f: Bool = #java.lang.Boolean.TRUE"
+    run(input)
+  }
+
+  test("Expression.NativeField.02") {
+    val input = "def f: Bool = #java.lang.Boolean.FALSE"
+    run(input)
+  }
+
+  test("Expression.NativeMethod.03") {
+    val input = "def f: Bool = #java.lang.String.valueOf('a')"
+    run(input)
+  }
+
+  test("Expression.NativeMethod.04") {
+    val input = "def f: Bool = #java.lang.String.valueOf(42)"
+    run(input)
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -416,7 +416,7 @@ class Parser(val source: SourceInput) extends org.parboiled2.Parser {
 
     def Primary: Rule1[ParsedAst.Expression] = rule {
       LetMatch | IfThenElse | Match | Switch | Lambda | Tuple | FNil | FVec | FSet | FMap | Literal |
-        Existential | Universal | UnaryLambda | QName | Wild | Tag | SName | UserError
+        Existential | Universal | UnaryLambda | QName | Wild | Tag | SName | UserError | NativeFieldOrMethod
     }
 
     def Literal: Rule1[ParsedAst.Expression.Lit] = rule {
@@ -520,6 +520,16 @@ class Parser(val source: SourceInput) extends org.parboiled2.Parser {
 
     def Universal: Rule1[ParsedAst.Expression.Universal] = rule {
       SP ~ atomic("∀" | "\\forall") ~ optWS ~ FormalParams ~ optWS ~ "." ~ optWS ~ Expression ~ SP ~> ParsedAst.Expression.Universal
+    }
+
+    def NativeFieldOrMethod: Rule1[ParsedAst.Expression] = {
+      def JavaIdentifier: Rule1[String] = rule {
+        capture(CharPredicate.Alpha ~ zeroOrMore(CharPredicate.AlphaNum))
+      }
+
+      rule {
+        SP ~ atomic("#") ~ oneOrMore(JavaIdentifier).separatedBy(".") ~ SP ~> ParsedAst.Expression.NativeFieldOrMethod
+      }
     }
 
   }

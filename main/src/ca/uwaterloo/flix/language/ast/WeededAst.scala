@@ -138,6 +138,8 @@ object WeededAst {
 
     case class Universal(params: List[WeededAst.FormalParam], exp: WeededAst.Expression, loc: SourceLocation) extends WeededAst.Expression
 
+    case class NativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation) extends WeededAst.Expression
+
     case class Ascribe(exp: WeededAst.Expression, tpe: WeededAst.Type, loc: SourceLocation) extends WeededAst.Expression
 
     case class UserError(loc: SourceLocation) extends WeededAst.Expression

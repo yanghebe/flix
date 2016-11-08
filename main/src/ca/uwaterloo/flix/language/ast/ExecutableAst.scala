@@ -16,7 +16,7 @@
 
 package ca.uwaterloo.flix.language.ast
 
-import java.lang.reflect.Method
+import java.lang.reflect.{Field, Method}
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 
 sealed trait ExecutableAst
@@ -550,6 +550,10 @@ object ExecutableAst {
     case class Universal(params: List[ExecutableAst.FormalArg], exp: ExecutableAst.Expression, loc: SourceLocation) extends ExecutableAst.Expression {
       def tpe: Type = Type.Bool
     }
+
+    case class NativeField(field: Field, tpe: Type, loc: SourceLocation) extends ExecutableAst.Expression
+
+    case class ApplyNativeMethod(method: Method, args: List[ExecutableAst.Expression], tpe: Type, loc: SourceLocation) extends ExecutableAst.Expression
 
     case class UserError(tpe: Type, loc: SourceLocation) extends ExecutableAst.Expression
 

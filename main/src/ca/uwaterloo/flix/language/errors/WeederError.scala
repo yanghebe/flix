@@ -16,8 +16,8 @@
 
 package ca.uwaterloo.flix.language.errors
 
-import ca.uwaterloo.flix.language.ast.SourceLocation
 import ca.uwaterloo.flix.language.CompilationError
+import ca.uwaterloo.flix.language.ast.SourceLocation
 import ca.uwaterloo.flix.util.Highlight._
 
 /**
@@ -274,6 +274,29 @@ object WeederError {
           |the 3rd component must be the partial order function,
           |the 4th component must be the least upper bound function, and
           |the 5th component must be the greatest upper bound function.
+          """.stripMargin
+  }
+
+  /**
+    * An error raised to indicate an illegal native field or method name.
+    *
+    * @param fqn the illegal native field or method name.
+    * @param loc the location where the illegal name occurs.
+    */
+  case class IllegalNativeFieldOrMethod(fqn: String, loc: SourceLocation) extends WeederError {
+    val source = loc.source
+    val message =
+      s"""|>> A native field or method name must have a class name and a member name.
+          |
+          |${Code(loc, "illegal native field or method.")}
+          |
+          |${Underline("Tip")}:
+          |
+          |a valid field name typically looks like:
+          |  #java.lang.Boolean.TRUE
+          |
+          |and a value method name typically looks like:
+          |  #java.lang.String.valueOf
           """.stripMargin
   }
 

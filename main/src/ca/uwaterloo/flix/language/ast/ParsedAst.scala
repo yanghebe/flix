@@ -617,6 +617,15 @@ object ParsedAst {
     case class Universal(sp1: SourcePosition, fparamsOpt: Option[Seq[ParsedAst.FormalParam]], exp: ParsedAst.Expression, sp2: SourcePosition) extends ParsedAst.Expression
 
     /**
+      * A reference to a native JVM field or method.
+      *
+      * @param sp1 the position of the first character in the expression.
+      * @param fqn the fully qualified name of the field or method.
+      * @param sp2 the position of the last character in the expression.
+      */
+    case class NativeFieldOrMethod(sp1: SourcePosition, fqn: Seq[String], sp2: SourcePosition) extends ParsedAst.Expression
+
+    /**
       * Ascribe Expression.
       *
       * @param exp the expression.
