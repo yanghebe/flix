@@ -16,11 +16,14 @@
 
 package ca.uwaterloo.flix.language.phase
 
+import java.lang.reflect.{Field, Method, Modifier}
+
 import ca.uwaterloo.flix.language.GenSym
 import ca.uwaterloo.flix.language.ast._
 import ca.uwaterloo.flix.language.errors.NameError
-import ca.uwaterloo.flix.util.Validation
+import ca.uwaterloo.flix.util.Result.{Err, Ok}
 import ca.uwaterloo.flix.util.Validation._
+import ca.uwaterloo.flix.util.{Result, Validation}
 
 import scala.collection.mutable
 
@@ -446,7 +449,12 @@ object Namer {
         }
 
       case WeededAst.Expression.NativeFieldOrMethod(className, memberName, loc) =>
-        ???
+        lookupNativeFieldOrMethod(className, memberName, loc) match {
+          case Ok(x) =>
+            println(x)
+            ???
+          case Err(e) => e.toFailure[NamedAst.Expression, NameError]
+        }
 
       case WeededAst.Expression.Ascribe(exp, tpe, loc) => namer(exp, env0, tenv0) map {
         case e => NamedAst.Expression.Ascribe(e, Types.namer(tpe, tenv0), loc)
@@ -668,50 +676,60 @@ object Namer {
   }
 
 
-//
-//  sealed trait NativeRef
-//  -
-//    -  object NativeRef {
-//    -
-//      -    case class FieldRef(field: Field) extends NativeRef
-//    -
-//      -    case class MethodRef(method: Method) extends NativeRef
-//    -
-//      -  }
-//  -
-//    -  //  TODO: DOC
-//  -  def lookupNativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation): Validation[NativeRef, ResolverError] = try {
-//    -    // retrieve class object.
-//      -    val clazz = Class.forName(className)
-//    -
-//      -    // retrieve static fields.
-//    -    val fields = clazz.getDeclaredFields.toList.filter {
-//      -      case field => Modifier.isStatic(field.getModifiers) && field.getName == memberName
-//      -    }
-//    -
-//      -    // retrieve static methods.
-//    -    val methods = clazz.getDeclaredMethods.toList.filter {
-//      -      case method => Modifier.isStatic(method.getModifiers) && method.getName == memberName
-//      -    }
-//    -
-//      -    // disambiguate member.
-//    -    if (fields.isEmpty && methods.isEmpty) {
-//      -      // at least one field and method share the same name.
-//        -      UnresolvedFieldOrMethod(className, memberName, loc).toFailure
-//      -    } else if (fields.size + methods.size > 2) {
-//      -      // multiple fields/methods share the same name.
-//        -      AmbiguousFieldOrMethod(className, memberName, loc).toFailure
-//      -    } else {
-//      -      if (fields.nonEmpty) {
-//        -        // resolves to a field.
-//          -        NativeRef.FieldRef(fields.head).toSuccess
-//        -      } else {
-//        -        // resolved to a method.
-//          -        NativeRef.MethodRef(methods.head).toSuccess
-//        -      }
-//      -    }
-//    -  } catch {
-//    -    case ex: ClassNotFoundException => UnresolvedNativeClass(className, loc).toFailure
-//    -  }
+  /**
+    * An ADT that represents the result of a native field or method lookup.
+    */
+  sealed trait NativeLookupResult
+
+  object NativeLookupResult {
+
+    /**
+      * A reference to a static field of a class.
+      */
+    case class FieldRef(field: Field) extends NativeLookupResult
+
+    /**
+      * A reference to a static method of a class.
+      */
+    case class MethodRef(method: Method) extends NativeLookupResult
+
+  }
+
+  /**
+    * Returns the result of looking up the given `className` and `memberName`.
+    */
+  def lookupNativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation): Result[NativeLookupResult, NameError] = try {
+    // retrieve class object.
+    val clazz = Class.forName(className)
+
+    // retrieve static fields.
+    val fields = clazz.getDeclaredFields.toList.filter {
+      case field => Modifier.isStatic(field.getModifiers) && field.getName == memberName
+    }
+
+    // retrieve static methods.
+    val methods = clazz.getDeclaredMethods.toList.filter {
+      case method => Modifier.isStatic(method.getModifiers) && method.getName == memberName
+    }
+
+    // disambiguate the member.
+    if (fields.isEmpty && methods.isEmpty) {
+      // no field or method with that name.
+      Err(UndefinedNativeFieldOrMethod(className, memberName, loc))
+    } else if (fields.size + methods.size > 2) {
+      // multiple fields and/or methods with the same name.
+      Err(AmbiguousNativeFieldOrMethod(className, memberName, loc))
+    } else {
+      if (fields.nonEmpty) {
+        // resolves to a field.
+        Ok(NativeLookupResult.FieldRef(fields.head))
+      } else {
+        // resolved to a method.
+        Ok(NativeLookupResult.MethodRef(methods.head))
+      }
+    }
+  } catch {
+    case ex: ClassNotFoundException => Err(UndefinedNativeClass(className, loc))
+  }
 
 }

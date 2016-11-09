@@ -69,4 +69,54 @@ object NameError {
         """.stripMargin
   }
 
+  /**
+    * Ambiguous Native Member Error.
+    *
+    * @param className  the name of the class.
+    * @param memberName the ambiguous name of the member.
+    * @param loc        the location where the error occurred.
+    */
+  // TODO: Move to ResolutionError.
+  case class AmbiguousNativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation) extends NameError {
+    val source = loc.source
+    val message =
+      hl"""|>> Ambiguous field or method '${Red(memberName)}' in class '$className'.
+           |
+           |${Code(loc, "multiple definitions found.")}
+        """.stripMargin
+  }
+
+  /**
+    * Undefined Native Class Error.
+    *
+    * @param className the name of the class.
+    * @param loc       the location where the error occurred.
+    */
+  // TODO: Move to ResolutionError.
+  case class UndefinedNativeClass(className: String, loc: SourceLocation) extends NameError {
+    val source = loc.source
+    val message =
+      hl"""|>> Undefined class '${Red(className)}'.
+           |
+           |${Code(loc, "class not found.")}
+        """.stripMargin
+  }
+
+  /**
+    * Undefined Native Member Error.
+    *
+    * @param className  the name of the class.
+    * @param memberName the name of the member.
+    * @param loc        the location where the error occurred.
+    */
+  // TODO: Move to ResolutionError.
+  case class UndefinedNativeFieldOrMethod(className: String, memberName: String, loc: SourceLocation) extends NameError {
+    val source = loc.source
+    val message =
+      hl"""|>> Undefined field or method '${Red(memberName)}' in class '$className'.
+           |
+           |${Code(loc, "field or method not found.")}
+        """.stripMargin
+  }
+
 }

@@ -84,4 +84,6 @@ class TestNativeFieldOrMethod extends FunSuite {
     assertResult(Long.MaxValue)(model.getConstant("f"))
   }
 
+  // TODO: Add tests for calls.
+
 }

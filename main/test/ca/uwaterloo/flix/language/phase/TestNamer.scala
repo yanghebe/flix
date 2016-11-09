@@ -18,7 +18,7 @@ package ca.uwaterloo.flix.language.phase
 
 import ca.uwaterloo.flix.TestUtils
 import ca.uwaterloo.flix.api.{Flix, IValue, Invokable}
-import ca.uwaterloo.flix.language.errors.{NameError, ResolutionError, TypeError}
+import ca.uwaterloo.flix.language.errors.{NameError, ResolutionError}
 import org.scalatest.FunSuite
 
 class TestNamer extends FunSuite with TestUtils {
@@ -369,55 +369,52 @@ class TestNamer extends FunSuite with TestUtils {
     assert(result.isSuccess)
   }
 
-//
-//  test("UnresolvedNativeClass01") {
-//    -    val input =
-//      -      s"""namespace A {
-// -          |  val x: #java.lang = 42;
-// -          |};
-// -       """.stripMargin
-//    -    val result = new Flix.Builder().addStr(input).compile()
-//    -    assert(result.errors.head.isInstanceOf[Resolver.ResolverError.UnresolvedNativeClass])
-//    -  }
-//  -
-//    -  test("UnresolvedNativeClass02") {
-//    -    val input =
-//      -      s"""namespace A {
-// -          |  val x: #java.lang.XYZ = 42;
-// -          |};
-// -       """.stripMargin
-//    -    val result = new Flix.Builder().addStr(input).compile()
-//    -    assert(result.errors.head.isInstanceOf[Resolver.ResolverError.UnresolvedNativeClass])
-//    -  }
-//  -
-//    -  test("UnresolvedFieldOrMethod01") {
-//    -    val input =
-//      -      s"""namespace A {
-// -          |  val x: #java.lang.String = #java.lang.String.Foo;
-// -          |};
-// -       """.stripMargin
-//    -    val result = new Flix.Builder().addStr(input).compile()
-//    -    assert(result.errors.head.isInstanceOf[Resolver.ResolverError.UnresolvedFieldOrMethod])
-//    -  }
-//  -
-//    -  test("AmbiguousFieldOrMethod01") {
-//    -    val input =
-//      -      s"""namespace A {
-// -          |  val x: Bool = #java.lang.Character.codePointBefore
-// -          |};
-// -       """.stripMargin
-//    -    val result = new Flix.Builder().addStr(input).compile()
-//    -    assert(result.errors.head.isInstanceOf[Resolver.ResolverError.AmbiguousFieldOrMethod])
-//    -  }
-//  -
-//    -  test("AmbiguousFieldOrMethod02") {
-//    -    val input =
-//      -      s"""namespace A {
-// -          |  val x: Int = #java.util.Arrays.binarySearch
-// -          |};
-// -       """.stripMargin
-//    -    val result = new Flix.Builder().addStr(input).compile()
-//    -    assert(result.errors.head.isInstanceOf[Resolver.ResolverError.AmbiguousFieldOrMethod])
-//    -  }
+  test("AmbiguousNativeFieldOrMethod.01") {
+    val input = "def f: Int = #java.lang.String.valueOf"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.AmbiguousNativeFieldOrMethod](result)
+  }
+
+  test("AmbiguousNativeFieldOrMethod.02") {
+    val input = "def f: Int = #java.lang.Integer.valueOf"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.AmbiguousNativeFieldOrMethod](result)
+  }
+
+  test("AmbiguousNativeFieldOrMethod.03") {
+    val input = "def f: Int = #java.util.Arrays.binarySearch"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.AmbiguousNativeFieldOrMethod](result)
+  }
+
+  test("UndefinedNativeClass.01") {
+    val input = "def f: Int = #foo.bar"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.UndefinedNativeClass](result)
+  }
+
+  test("UndefinedNativeClass.02") {
+    val input = "def f: Int = #foo.bar.baz"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.UndefinedNativeClass](result)
+  }
+
+  test("UndefinedNativeClass.03") {
+    val input = "def f: Int = #java.lang.Foo"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.UndefinedNativeClass](result)
+  }
+
+  test("UndefinedNativeFieldOrMethod.01") {
+    val input = "def f: Int = #java.lang.String.Foo"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.UndefinedNativeFieldOrMethod](result)
+  }
+
+  test("UndefinedNativeFieldOrMethod.02") {
+    val input = "def f: Int = #java.lang.String.Bar"
+    val result = new Flix().addStr(input).compile()
+    expectError[NameError.UndefinedNativeFieldOrMethod](result)
+  }
 
 }

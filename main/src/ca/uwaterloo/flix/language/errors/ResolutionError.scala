@@ -29,62 +29,6 @@ sealed trait ResolutionError extends TypeError {
 
 object ResolutionError {
 
-//
-//  -    /**
-//  -      * An error raised to indicate a reference to an unknown native class.
-// -      *
-// -      * @param name the fully qualified name of the class.
-// -      * @param loc  the source location of the reference.
-// -      */
-//    -    // TODO: Test case
-//  -    case class UnresolvedNativeClass(name: String, loc: SourceLocation) extends ResolverError {
-//    -      val format =
-//      -        s"""${consoleCtx.blue(s"-- REFERENCE ERROR -------------------------------------------------- ${loc.source.format}")}
-// -           |
-// -            |${consoleCtx.red(s">> The class name: '$name' was not found.")}
-// -           |
-// -            |${loc.underline}
-// -           |Tip: Check your class path.
-// -         """.stripMargin
-//    -    }
-//  -
-//    -    /**
-//  -      * An error raised to indicate a reference to an unknown field or method.
-// -      *
-// -      * @param clazz  the fully qualified name of the class.
-// -      * @param member the field or method name.
-// -      * @param loc    the source location of the reference.
-// -      */
-//  -    // TODO: Test case
-//    -    case class UnresolvedFieldOrMethod(clazz: String, member: String, loc: SourceLocation) extends ResolverError {
-//    -      val format =
-//      -        s"""${consoleCtx.blue(s"-- REFERENCE ERROR -------------------------------------------------- ${loc.source.format}")}
-// -           |
-// -            |${consoleCtx.red(s">> No static field or method '$member' on '$clazz'.")}
-// -           |
-// -            |${loc.underline}
-// -         """.stripMargin
-//    -    }
-//  -
-//    -    /**
-//  -      * An error raised to indicate a reference to an unknown field or method.
-// -      *
-// -      * @param clazz  the fully qualified name of the class.
-// -      * @param member the field or method name.
-// -      * @param loc    the source location of the reference.
-// -      */
-//  -    // TODO: Test case
-//    -    case class AmbiguousFieldOrMethod(clazz: String, member: String, loc: SourceLocation) extends ResolverError {
-//    -      val format =
-//      -        s"""${consoleCtx.blue(s"-- REFERENCE ERROR -------------------------------------------------- ${loc.source.format}")}
-// -           |
-// -            |${consoleCtx.red(s">> Ambiguous field or method '$member' on '$clazz'.")}
-// -           |
-// -            |${loc.underline}
-// -         """.stripMargin
-//    -    }
-
-
   /**
     * Ambiguous Reference Error.
     *

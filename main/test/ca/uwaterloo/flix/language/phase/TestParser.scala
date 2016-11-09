@@ -1547,12 +1547,12 @@ class TestParser extends FunSuite with TestUtils {
     run(input)
   }
 
-  test("Expression.NativeMethod.03") {
+  test("Expression.NativeMethod.01") {
     val input = "def f: Bool = #java.lang.String.valueOf('a')"
     run(input)
   }
 
-  test("Expression.NativeMethod.04") {
+  test("Expression.NativeMethod.02") {
     val input = "def f: Bool = #java.lang.String.valueOf(42)"
     run(input)
   }
