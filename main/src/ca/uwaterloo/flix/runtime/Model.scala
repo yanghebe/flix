@@ -16,7 +16,8 @@
 
 package ca.uwaterloo.flix.runtime
 
-import ca.uwaterloo.flix.language.ast.{Time, ExecutableAst, Symbol}
+import ca.uwaterloo.flix.api.IModel
+import ca.uwaterloo.flix.language.ast.{ExecutableAst, Symbol, Time}
 
 /**
   * A class representing the minimal model.
@@ -30,36 +31,35 @@ class Model(root: ExecutableAst.Root,
             time: Time,
             definitions: Map[Symbol.DefnSym, () => AnyRef],
             relations: Map[Symbol.TableSym, Iterable[List[AnyRef]]],
-            lattices: Map[Symbol.TableSym, Iterable[(List[AnyRef], AnyRef)]]) {
+            lattices: Map[Symbol.TableSym, Iterable[(List[AnyRef], AnyRef)]]) extends IModel {
 
   // TODO: Hide this behind an interface, IModel?
 
-  // TODO: Remove?
+  // TODO: To be removed.
   def getRoot: ExecutableAst.Root = root
 
-  // TODO: Remove?
-  def getTime: Time = time
-
-  @deprecated("to be removed", "0.1")
-  def getConstant(sym: Symbol.DefnSym): AnyRef = definitions(sym)()
-
   // TODO: Needs to take arguments.
-  def getConstant(name: String): AnyRef = getConstant(Symbol.mkDefnSym(name))
+  def getConstant(name: String): AnyRef = definitions(Symbol.mkDefnSym(name))()
 
   // TODO: Should throw a java exception if the relation does not exist.
-  def getRelation(name: String): Iterable[List[AnyRef]] =
-  getRelationOpt(name).get
+  def getRelation(name: String): Iterable[List[AnyRef]] = {
+    // TODO: Use match
+    val sym = Symbol.mkTableSym(name)
+    relations.getOrElse(sym, throw new IllegalArgumentException(s"Undefined lattice '$name."))
+  }
 
-  @deprecated("to be removed", "0.1")
-  def getRelationOpt(name: String): Option[Iterable[List[AnyRef]]] =
-    relations.get(Symbol.mkTableSym(name))
-
+  // TODO: Java iterable?
   // TODO: Should throw a java exception if the lattice does not exist.
-  def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)] =
-  getLatticeOpt(name).get
-
-  @deprecated("to be removed", "0.1")
-  def getLatticeOpt(name: String): Option[Iterable[(List[AnyRef], AnyRef)]] =
-    lattices.get(Symbol.mkTableSym(name))
+  /**
+    *
+    * @param name
+    * @return
+    * @throws IllegalArgumentException if a lattice with the given `name` does not exist.
+    */
+  def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)] = {
+    // TODO: Use match
+    val sym = Symbol.mkTableSym(name)
+    lattices.getOrElse(sym, throw new IllegalArgumentException(s"Undefined lattice '$name."))
+  }
 
 }

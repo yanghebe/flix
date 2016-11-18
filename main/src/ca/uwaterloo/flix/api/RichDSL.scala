@@ -18,6 +18,8 @@ package ca.uwaterloo.flix.api
 
 import ca.uwaterloo.flix.runtime.{Model, Value}
 
+import scala.util.Try
+
 // TODO: Take inspiration from WrappedValue, but not everything...
 
 object RichDSL {
@@ -47,6 +49,11 @@ object RichDSL {
     // TODO: Needs to take arguments.
     def eval(fqn: String): RichValue = new RichValue(m.getConstant(fqn))
 
+    // TODO: Replace by better alternative.
+    def getRelationOpt(fqn: String): Option[Iterable[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
+
+    // TODO: Replace by better alternative.
+    def getLatticeOpt(fqn: String): Option[Iterable[(List[AnyRef], AnyRef)]] = Try(m.getLattice(fqn)).toOption
 
   }
 
@@ -84,14 +91,25 @@ object RichDSL {
       */
     def isFalse: Boolean = !toBool
 
-
+    /**
+      * Returns `true` if `this` value is the `None` value.
+      */
     def isNone: Boolean = ???
 
-    // TODO: Is none/some
+    /**
+      * Returns `true` if `this` value is `Some(v)`.
+      */
+    def isSome: Boolean = ???
 
-    // TODO: is ok/err
+    /**
+      * Returns `true` if `this` value is `Ok(v)`.
+      */
+    def isOk: Boolean = ???
 
-    //
+    /**
+      * Returns `true` if `this` value is `Err(v)`.
+      */
+
     //  def getScalaEither: Either[IValue, IValue] = ref match {
     //    case o: Value.Tag => o.tag match {
     //      case "Ok" => Right(new WrappedValue(o.value))

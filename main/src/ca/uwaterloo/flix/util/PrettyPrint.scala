@@ -16,9 +16,9 @@
 
 package ca.uwaterloo.flix.util
 
+import ca.uwaterloo.flix.api.RichDSL._
 import ca.uwaterloo.flix.language.ast.{ExecutableAst, Symbol}
-import ca.uwaterloo.flix.runtime.{Value, Model}
-
+import ca.uwaterloo.flix.runtime.{Model, Value}
 
 object PrettyPrint {
 
@@ -27,14 +27,6 @@ object PrettyPrint {
 
     var found = false
 
-    // TODO
-//    model.constants.get(sym) match {
-//      case None => // nop
-//      case Some(v) =>
-//        found = true
-//        Value.pretty(v)
-//    }
-
     model.getRelationOpt(name) match {
       case None => // nop
       case Some(xs) =>
@@ -42,7 +34,7 @@ object PrettyPrint {
         val cols = r.attributes.map(_.name)
         val ascii = new AsciiTable().withCols(cols: _*)
         for (row <- xs.toSeq.sortBy(_.head.toString)) {
-          ascii.mkRow(row.toList map Value.pretty)
+          ascii.mkRow(row map Value.pretty)
         }
 
         Console.println(r.sym)
