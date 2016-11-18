@@ -32,23 +32,33 @@ class Model(root: ExecutableAst.Root,
             relations: Map[Symbol.TableSym, Iterable[List[AnyRef]]],
             lattices: Map[Symbol.TableSym, Iterable[(List[AnyRef], AnyRef)]]) {
 
+  // TODO: Hide this behind an interface, IModel?
+
+  // TODO: Remove?
   def getRoot: ExecutableAst.Root = root
 
+  // TODO: Remove?
   def getTime: Time = time
 
+  @deprecated("to be removed", "0.1")
   def getConstant(sym: Symbol.DefnSym): AnyRef = definitions(sym)()
 
+  // TODO: Needs to take arguments.
   def getConstant(name: String): AnyRef = getConstant(Symbol.mkDefnSym(name))
 
+  // TODO: Should throw a java exception if the relation does not exist.
   def getRelation(name: String): Iterable[List[AnyRef]] =
-    getRelationOpt(name).get
+  getRelationOpt(name).get
 
+  @deprecated("to be removed", "0.1")
   def getRelationOpt(name: String): Option[Iterable[List[AnyRef]]] =
     relations.get(Symbol.mkTableSym(name))
 
+  // TODO: Should throw a java exception if the lattice does not exist.
   def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)] =
-    getLatticeOpt(name).get
+  getLatticeOpt(name).get
 
+  @deprecated("to be removed", "0.1")
   def getLatticeOpt(name: String): Option[Iterable[(List[AnyRef], AnyRef)]] =
     lattices.get(Symbol.mkTableSym(name))
 
