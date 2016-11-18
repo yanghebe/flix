@@ -49,6 +49,9 @@ object RichDSL {
     // TODO: Needs to take arguments.
     def eval(fqn: String): RichValue = new RichValue(m.getConstant(fqn))
 
+    // TODO: Avoid name clash
+    def getRelation2(fqn: String): RichRelation = ???
+
     // TODO: Replace by better alternative.
     def getRelationOpt(fqn: String): Option[Iterable[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
 
@@ -57,8 +60,10 @@ object RichDSL {
 
   }
 
+  // TODO: Relation1, Relation2, etc.
+  class RichRelation(rel: Iterable[List[AnyRef]]) {
 
-  class RichRelation() {
+
 
   }
 
