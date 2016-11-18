@@ -26,6 +26,12 @@ object RichDSL {
 
   implicit def model2rich(m: Model): RichModel = RichModel(m)
 
+  // TODO: Provide some kind of equivalence on Scala values and Flix values.
+
+  def eq(o1: AnyRef, o2: AnyRef): Boolean = (o1, o2) match {
+    case (None, v2: RichValue) => v2.isNone
+    case (v1: RichValue, None) => v1.isNone
+  }
 
   /**
     * An enriched Flix model.
@@ -78,6 +84,8 @@ object RichDSL {
       */
     def isFalse: Boolean = !toBool
 
+
+    def isNone: Boolean = ???
 
     // TODO: Is none/some
 
@@ -180,7 +188,7 @@ object RichDSL {
     //  def getTagValue: IValue = new WrappedValue(Value.cast2tag(ref).value)
 
     /**
-      * Returns `this` value as a Scala option.
+      * Returns `this` value as a Scala Option.
       */
     def toOption: Option[RichValue] = ref match {
       case o: Value.Tag => o.tag match {
@@ -191,9 +199,16 @@ object RichDSL {
       case _ => throw new IllegalStateException(s"Value has non-option type: ${ref.getClass.getCanonicalName}.")
     }
 
+    /**
+      * Returns `this` value as a Scala Either.
+      */
     def toEither: Either[RichValue, RichValue] = ???
 
     def toList: List[RichValue] = ???
+
+    // TODO: set
+
+    // TODO: map
 
     /**
       * Returns `true` if `this` and `that` value shared the same underlying ref.
@@ -207,20 +222,6 @@ object RichDSL {
       * Returns the hash code of `this` value.
       */
     override def hashCode(): Int = ref.hashCode()
-
-  }
-
-  object Foo {
-
-    def bar: Unit = {
-
-      import RichModel._
-
-      val m: Model = null
-
-      m.eval("foo").toOption
-
-    }
 
   }
 
