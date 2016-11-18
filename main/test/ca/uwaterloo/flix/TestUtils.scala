@@ -16,6 +16,7 @@
 
 package ca.uwaterloo.flix
 
+import ca.uwaterloo.flix.api.RichDSL.RichValue
 import ca.uwaterloo.flix.language.CompilationError
 import ca.uwaterloo.flix.language.ast.ExecutableAst
 import ca.uwaterloo.flix.util.Validation
@@ -37,6 +38,12 @@ trait TestUtils {
       val actual = errors.head.getClass
       if (expected != actual)
         fail(s"Expected an error of type ${expected.getSimpleName}, but got ${actual.getSimpleName}.")
+  }
+
+  // TODO: DOC
+  def assertValue[A](o: Option[A])(v: RichValue): Unit = o match {
+    case None => ??? // TODO
+    case Some(v2) => ??? // TODO
   }
 
 }

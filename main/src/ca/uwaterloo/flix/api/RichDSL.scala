@@ -78,6 +78,11 @@ object RichDSL {
       */
     def isFalse: Boolean = !toBool
 
+
+    // TODO: Is none/some
+
+    // TODO: is ok/err
+
     //
     //  def getScalaEither: Either[IValue, IValue] = ref match {
     //    case o: Value.Tag => o.tag match {
@@ -141,6 +146,9 @@ object RichDSL {
       case _ => throw new IllegalStateException(s"Value has non-double type: ${ref.getClass.getCanonicalName}.")
     }
 
+    /**
+      * Returns `this` value as a primitive byte.
+      */
     def toInt8: Byte = ???
 
     def toInt16: Short = ???
@@ -153,14 +161,6 @@ object RichDSL {
 
     def toStr: String = ???
 
-    //ref match {
-    //    case o: Value.Tag => o.tag match {
-    //      case "None" => scala.None
-    //      case "Some" => scala.Some(new WrappedValue(o.value))
-    //      case tag => throw new RuntimeException(s"Unexpected non-option tag: '$tag'.")
-    //    }
-    //    case _ => throw new RuntimeException(s"Unexpected non-option value: '$ref'.")
-    //  }
 
     /**
       * Returns `this` value as a 2-tuple.
@@ -179,7 +179,17 @@ object RichDSL {
     //
     //  def getTagValue: IValue = new WrappedValue(Value.cast2tag(ref).value)
 
-    def toOption: Option[RichValue] = ???
+    /**
+      * Returns `this` value as a Scala option.
+      */
+    def toOption: Option[RichValue] = ref match {
+      case o: Value.Tag => o.tag match {
+        case "None" => scala.None
+        case "Some" => scala.Some(new RichValue(o.value))
+        case tag => throw new IllegalStateException(s"Unexpected non-option tag: '$tag'.")
+      }
+      case _ => throw new IllegalStateException(s"Value has non-option type: ${ref.getClass.getCanonicalName}.")
+    }
 
     def toEither: Either[RichValue, RichValue] = ???
 

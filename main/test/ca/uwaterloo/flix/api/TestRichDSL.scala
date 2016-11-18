@@ -16,10 +16,11 @@
 
 package ca.uwaterloo.flix.api
 
+import ca.uwaterloo.flix.TestUtils
 import ca.uwaterloo.flix.util.Options
 import org.scalatest.FunSuite
 
-class TestRichDSL extends FunSuite {
+class TestRichDSL extends FunSuite with TestUtils {
 
   import ca.uwaterloo.flix.api.RichDSL._
 
@@ -60,6 +61,20 @@ class TestRichDSL extends FunSuite {
     val (a, b) = model.eval("f").toTuple2
     assertResult(true)(a.toBool)
     assertResult('a')(b.toChar)
+  }
+
+  test("RichValue.toOption.01") {
+    val input = "def f: Option[Int] = None"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(None)(model.eval("f").toOption)
+  }
+
+  test("RichValue.toOption.02") {
+    val input = "def f: Option[Int] = Some(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertValue(Some(42))(model.eval("f"))
   }
 
   // TODO: Add test cases.
