@@ -19,32 +19,32 @@ package ca.uwaterloo.flix.api.dsl
 object Combinators {
 
   sealed trait Convert[T] {
-    //def produce: T
-    def consume: T => AnyRef
+    def pack: T => AnyRef
+    def unpack: AnyRef => T
   }
 
   case object Int8 extends Convert[Byte] {
-    def produce: (AnyRef) => Byte = ???
-    def consume: (Byte) => AnyRef = ???
+    def pack: (Byte) => AnyRef = ???
+    def unpack: (AnyRef) => Byte = ???
   }
 
   case object Str extends Convert[String] {
-    def produce: (AnyRef) => String = ???
-    def consume: (String) => AnyRef = ???
+    def pack: (String) => AnyRef = ???
+    def unpack: (AnyRef) => String = ???
   }
 
   case class Tuple2[A, B](o1: Convert[A], o2: Convert[B]) extends Convert[(A, B)] {
-    def produce: (AnyRef) => (A, B) = ???
-    def consume: ((A, B))=> AnyRef = ???
+    def pack: ((A, B))=> AnyRef = ???
+    def unpack: (AnyRef) => (A, B) = ???
   }
 
   case class Lst[T](o: Convert[T]) extends Convert[List[T]] {
-    def produce: (AnyRef) => List[T] = ???
-    def consume: (List[T]) => AnyRef = ???
+    def pack: (List[T]) => AnyRef = ???
+    def unpack: (AnyRef) => List[T] = ???
   }
 
   val foo: AnyRef = ???
 
-  val bar: List[(Byte, String)] = Lst(Tuple2(Int8, Str)).produce("foo")
+  val bar: List[(Byte, String)] = Lst(Tuple2(Int8, Str)).unpack("foo")
 
 }
