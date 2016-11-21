@@ -19,7 +19,7 @@ package ca.uwaterloo.flix.api.dsl
 object Combinators {
 
   sealed trait Convert[T] {
-    def produce: T
+    //def produce: T
     def consume: T => AnyRef
   }
 
