@@ -16,6 +16,8 @@
 
 package ca.uwaterloo.flix.api
 
+import java.math.BigInteger
+
 import ca.uwaterloo.flix.TestUtils
 import ca.uwaterloo.flix.util.Options
 import org.scalatest.FunSuite
@@ -60,7 +62,21 @@ class TestRichDSL extends FunSuite with TestUtils {
     val input = "def f: Option[Int] = Some(42)"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assert(model.eval2("f").isNone)
+    assert(model.eval2("f").isSome)
+  }
+
+  test("RichValue.isOk.01") {
+    val input = "def f: Result[Int, Int] = Ok(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isOk)
+  }
+
+  test("RichValue.isErr.01") {
+    val input = "def f: Result[Int, Int] = Err(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isErr)
   }
 
   test("RichValue.toBool.01") {
@@ -96,6 +112,20 @@ class TestRichDSL extends FunSuite with TestUtils {
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
     assertResult(42)(model.eval2("f").toInt64)
+  }
+
+  test("RichValue.toBigInt.01") {
+    val input = "def f: BigInt = 42ii"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(new BigInteger("42"))(model.eval2("f").toBigInt)
+  }
+
+  test("RichValue.toStr.01") {
+    val input = "def f: Str = \"foo\""
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult("foo")(model.eval2("f").toStr)
   }
 
   test("RichValue.toTuple2.01") {

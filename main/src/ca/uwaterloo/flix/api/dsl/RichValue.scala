@@ -62,11 +62,18 @@ class RichValue(private val ref: AnyRef) {
   /**
     * Returns `true` if `this` value is `Ok(v)`.
     */
-  def isOk: Boolean = ???
+  def isOk: Boolean = ref match {
+    case o: Value.Tag => o.tag == "Ok"
+    case _ => false
+  }
 
   /**
     * Returns `true` if `this` value is `Err(v)`.
     */
+  def isErr: Boolean = ref match {
+    case o: Value.Tag => o.tag == "Err"
+    case _ => false
+  }
 
   //  def getScalaEither: Either[IValue, IValue] = ref match {
   //    case o: Value.Tag => o.tag match {
@@ -141,27 +148,42 @@ class RichValue(private val ref: AnyRef) {
   /**
     * Returns `this` value as a primitive short.
     */
-  def toInt16: Short = ???
+  def toInt16: Short = ref match {
+    case s: java.lang.Short => s.shortValue()
+    case _ => throw new IllegalStateException(s"Value has non-short type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a primitive int.
     */
-  def toInt32: Int = ???
+  def toInt32: Int = ref match {
+    case i: java.lang.Integer => i.intValue()
+    case _ => throw new IllegalStateException(s"Value has non-integer type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a primitive long.
     */
-  def toInt64: Long = ???
+  def toInt64: Long = ref match {
+    case l: java.lang.Long => l.longValue()
+    case _ => throw new IllegalStateException(s"Value has non-long type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a BigInteger.
     */
-  def toBigInt: java.math.BigInteger = ???
+  def toBigInt: java.math.BigInteger = ref match {
+    case bi: java.math.BigInteger => bi
+    case _ => throw new IllegalStateException(s"Value has non-bigint type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a String.
     */
-  def toStr: String = ???
+  def toStr: String = ref match {
+    case s: String => s
+    case _ => throw new IllegalStateException(s"Value has non-str type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a 2-tuple.
