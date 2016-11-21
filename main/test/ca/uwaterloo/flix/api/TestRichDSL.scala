@@ -68,6 +68,34 @@ class TestRichDSL extends FunSuite with TestUtils {
     assert(model.eval2("f").toBool)
   }
 
+  test("RichValue.toInt8.01") {
+    val input = "def f: Int8 = 42i8"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toInt8)
+  }
+
+  test("RichValue.toInt16.01") {
+    val input = "def f: Int16 = 42i16"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toInt16)
+  }
+
+  test("RichValue.toInt32.01") {
+    val input = "def f: Int32 = 42i32"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toInt32)
+  }
+
+  test("RichValue.toInt64.01") {
+    val input = "def f: Int64 = 42i64"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toInt64)
+  }
+
   test("RichValue.toTuple2.01") {
     val input = "def f: (Bool, Char) = (true, 'a')"
     val flix = new Flix().setOptions(opts).addStr(input)
@@ -91,7 +119,7 @@ class TestRichDSL extends FunSuite with TestUtils {
     assertValue(Some(42))(model.eval2("f"))
   }
 
-  // TODO: Add test cases.
+  // TODO: Ensure that everything is tested.
 
 
 }

@@ -237,18 +237,35 @@ object RichDSL {
     /**
       * Returns `this` value as a primitive byte.
       */
-    def toInt8: Byte = ???
+    def toInt8: Byte = ref match {
+      case b: java.lang.Byte => b.byteValue()
+      case _ => throw new IllegalStateException(s"Value has non-byte type: ${ref.getClass.getCanonicalName}.")
+    }
 
+    /**
+      * Returns `this` value as a primitive short.
+      */
     def toInt16: Short = ???
 
+    /**
+      * Returns `this` value as a primitive int.
+      */
     def toInt32: Int = ???
 
+    /**
+      * Returns `this` value as a primitive long.
+      */
     def toInt64: Long = ???
 
+    /**
+      * Returns `this` value as a BigInteger.
+      */
     def toBigInt: java.math.BigInteger = ???
 
+    /**
+      * Returns `this` value as a String.
+      */
     def toStr: String = ???
-
 
     /**
       * Returns `this` value as a 2-tuple.
