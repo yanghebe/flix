@@ -19,7 +19,7 @@ package ca.uwaterloo.flix.runtime
 import java.util.ArrayList
 import java.util.concurrent._
 
-import ca.uwaterloo.flix.api.{IValue, RuleException, TimeoutException, WrappedValue}
+import ca.uwaterloo.flix.api.{IModel, IValue, RuleException, TimeoutException, WrappedValue}
 import ca.uwaterloo.flix.language.ast.ExecutableAst.Constraint.Rule
 import ca.uwaterloo.flix.language.ast.ExecutableAst._
 import ca.uwaterloo.flix.language.ast.{Ast, ExecutableAst, Symbol}
@@ -187,7 +187,7 @@ class Solver(val root: ExecutableAst.Root, options: Options) {
   /**
     * Solves the Flix program.
     */
-  def solve(): Model = try {
+  def solve(): IModel = try {
     // initialize the solver.
     initSolver()
 

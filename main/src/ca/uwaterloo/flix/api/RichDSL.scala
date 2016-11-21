@@ -26,7 +26,7 @@ object RichDSL {
 
   // TODO: Names .to, .as, .get?
 
-  implicit def model2rich(m: Model): RichModel = RichModel(m)
+  implicit def model2rich(m: IModel): RichModel = RichModel(m)
 
   // TODO: Provide some kind of equivalence on Scala values and Flix values.
 
@@ -38,7 +38,7 @@ object RichDSL {
   /**
     * An enriched Flix model.
     */
-  case class RichModel(m: Model) {
+  case class RichModel(m: IModel) {
 
     /**
       * TODO: DOC
@@ -47,7 +47,8 @@ object RichDSL {
       * @return
       */
     // TODO: Needs to take arguments.
-    def eval(fqn: String): RichValue = new RichValue(m.getConstant(fqn))
+    // TODO: Name?
+    def eval(fqn: String): RichValue = new RichValue(m.eval(fqn))
 
     // TODO: Avoid name clash
     def getRelation2(fqn: String): RichRelation = ???

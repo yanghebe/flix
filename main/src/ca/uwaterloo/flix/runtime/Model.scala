@@ -39,7 +39,7 @@ class Model(root: ExecutableAst.Root,
   def getRoot: ExecutableAst.Root = root
 
   // TODO: Needs to take arguments.
-  def getConstant(name: String): AnyRef = definitions(Symbol.mkDefnSym(name))()
+  def getConstant(name: String, args: AnyRef*): AnyRef = definitions(Symbol.mkDefnSym(name))()
 
   // TODO: Should throw a java exception if the relation does not exist.
   def getRelation(name: String): Iterable[List[AnyRef]] = {

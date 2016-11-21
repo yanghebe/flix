@@ -24,7 +24,7 @@ import ca.uwaterloo.flix.language.phase._
 import ca.uwaterloo.flix.language.{CompilationError, Compiler, GenSym}
 import ca.uwaterloo.flix.runtime.quickchecker.QuickChecker
 import ca.uwaterloo.flix.runtime.verifier.Verifier
-import ca.uwaterloo.flix.runtime.{DeltaSolver, Model, Solver, Value}
+import ca.uwaterloo.flix.runtime.{DeltaSolver, Solver, Value}
 import ca.uwaterloo.flix.util.{LocalResource, Options, StreamOps, Validation}
 
 import scala.collection.mutable.ListBuffer
@@ -239,7 +239,7 @@ class Flix {
   /**
     * Runs the Flix fixed point solver on the program and returns the minimal model.
     */
-  def solve(): Validation[Model, CompilationError] = compile().map {
+  def solve(): Validation[IModel, CompilationError] = compile().map {
     case root => new Solver(root, options).solve()
   }
 

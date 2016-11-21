@@ -16,13 +16,14 @@
 
 package ca.uwaterloo.flix.util
 
+import ca.uwaterloo.flix.api.IModel
 import ca.uwaterloo.flix.api.RichDSL._
 import ca.uwaterloo.flix.language.ast.{ExecutableAst, Symbol}
-import ca.uwaterloo.flix.runtime.{Model, Value}
+import ca.uwaterloo.flix.runtime.Value
 
 object PrettyPrint {
 
-  def print(name: String, model: Model): Unit = {
+  def print(name: String, model: IModel): Unit = {
     val sym = Symbol.mkTableSym(name)
 
     var found = false

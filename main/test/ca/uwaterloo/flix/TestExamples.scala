@@ -16,8 +16,8 @@
 
 package ca.uwaterloo.flix
 
-import ca.uwaterloo.flix.api.Flix
-import ca.uwaterloo.flix.runtime.{Model, Value}
+import ca.uwaterloo.flix.api.{Flix, IModel}
+import ca.uwaterloo.flix.runtime.Value
 import ca.uwaterloo.flix.util._
 import org.scalatest.FunSuite
 
@@ -27,8 +27,8 @@ class TestExamples extends FunSuite {
 
     private val interpretedFlix = createFlix(codegen = false)
     private val compiledFlix = createFlix(codegen = true)
-    private var interpreted: Model = null
-    private var compiled: Model = null
+    private var interpreted: IModel = null
+    private var compiled: IModel = null
 
     private def createFlix(codegen: Boolean = false) = {
       val options = Options.DefaultTest.copy(evaluation = if (codegen) Evaluation.Compiled else Evaluation.Interpreted)

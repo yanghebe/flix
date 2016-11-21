@@ -16,6 +16,20 @@
 
 package ca.uwaterloo.flix.api
 
+import ca.uwaterloo.flix.language.ast.ExecutableAst
+
 trait IModel {
+
+  // TODO: To be removed.
+  def getRoot: ExecutableAst.Root
+
+  // TODO: Rename
+  def getConstant(name: String, args: AnyRef*): AnyRef
+
+  // TODO: Rename and change types.
+  def getRelation(name: String): Iterable[List[AnyRef]]
+
+  // TODO: Rename and change types.
+  def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)]
 
 }
