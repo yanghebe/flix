@@ -159,11 +159,9 @@ class RichValue(private val ref: AnyRef) {
     * Returns `this` value as a 2-tuple.
     */
   def toTuple2: (RichValue, RichValue) = ref match {
-    case Value.Tuple(elms) =>
-      if (elms.length != 2)
-        throw new IllegalStateException(s"Tuple has size ${elms.length}.")
-      else
-        (new RichValue(elms(0)), new RichValue(elms(1)))
+    case Value.Tuple(elms) if elms.length == 2 =>
+      (new RichValue(elms(0)), new RichValue(elms(1)))
+    case Value.Tuple(elms) => throw new IllegalStateException(s"Tuple has size ${elms.length}.")
     case _ => throw new IllegalStateException(s"Value has non-tuple type: ${ref.getClass.getCanonicalName}.")
   }
 
