@@ -87,6 +87,8 @@ object RichDSL {
     def attributesOf: List[String] = attributes
   }
 
+  case class Relation2(attr1: String, attr2: String, data: Iterable[(AnyRef, AnyRef)])
+
   class RichLattice() {
 
   }
