@@ -17,7 +17,7 @@
 package ca.uwaterloo.flix.api
 
 import ca.uwaterloo.flix.runtime.{Model, Value}
-
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 // TODO: Take inspiration from WrappedValue, but not everything...
@@ -48,13 +48,21 @@ object RichDSL {
       */
     // TODO: Needs to take arguments.
     // TODO: Name?
-    def eval(fqn: String): RichValue = new RichValue(m.eval(fqn))
+    def eval2(fqn: String, args: AnyRef*): RichValue = new RichValue(m.eval(fqn, args))
+
+
+    // TODO: Rename and change types.
+    def getRelation(fqn: String): Iterator[List[AnyRef]] = {
+      m.relationIterator(fqn).asScala.map {
+        case xs => xs.asScala.toList
+      }
+    }
 
     // TODO: Avoid name clash
     def getRelation2(fqn: String): RichRelation = ???
 
     // TODO: Replace by better alternative.
-    def getRelationOpt(fqn: String): Option[Iterable[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
+    def getRelationOpt(fqn: String): Option[Iterator[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
 
     // TODO: Replace by better alternative.
     def getLatticeOpt(fqn: String): Option[Iterable[(List[AnyRef], AnyRef)]] = Try(m.getLattice(fqn)).toOption

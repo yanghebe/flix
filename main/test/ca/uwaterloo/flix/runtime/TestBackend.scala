@@ -17,6 +17,7 @@
 package ca.uwaterloo.flix.runtime
 
 import ca.uwaterloo.flix.api._
+import ca.uwaterloo.flix.api.RichDSL._
 import ca.uwaterloo.flix.util._
 import org.scalatest.FunSuite
 
@@ -150,13 +151,13 @@ class TestBackend extends FunSuite {
     }
 
     def runTest(expected: AnyRef, const: String): Unit = {
-      withClue(s"interpreted value $const:") { assertResult(expected)(interpreted.getConstant(const)) }
-      withClue(s"compiled value $const:") { assertResult(expected)(compiled.getConstant(const)) }
+      withClue(s"interpreted value $const:") { assertResult(expected)(interpreted.eval(const)) }
+      withClue(s"compiled value $const:") { assertResult(expected)(compiled.eval(const)) }
     }
 
     def runInterceptTest[T <: AnyRef](const:String)(implicit manifest: Manifest[T]): Unit = {
-      withClue(s"interpreted value $const:") { intercept[T](interpreted.getConstant(const)) }
-      withClue(s"compiled value $const:") { intercept[T](compiled.getConstant(const)) }
+      withClue(s"interpreted value $const:") { intercept[T](interpreted.eval(const)) }
+      withClue(s"compiled value $const:") { intercept[T](compiled.eval(const)) }
     }
 
     def checkModel(expected: AnyRef, model: String): Unit = {

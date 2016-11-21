@@ -102,7 +102,7 @@ object Main {
           val main = cmdOpts.main
           if (main.nonEmpty) {
             val name = main.get
-            val result = model.getConstant(name)
+            val result = model.eval(name)
             Console.println(s"$name returned `${Value.pretty(result)}'.")
           }
 

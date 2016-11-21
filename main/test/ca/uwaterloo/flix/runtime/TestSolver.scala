@@ -17,6 +17,7 @@
 package ca.uwaterloo.flix.runtime
 
 import ca.uwaterloo.flix.api.{Flix, IValue, Invokable, TimeoutException}
+import ca.uwaterloo.flix.api.RichDSL._
 import ca.uwaterloo.flix.util.Options
 import org.scalatest.FunSuite
 

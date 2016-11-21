@@ -30,35 +30,35 @@ class TestRichDSL extends FunSuite with TestUtils {
     val input = "def f: Unit = ()"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assert(model.eval("f").isUnit)
+    assert(model.eval2("f").isUnit)
   }
 
   test("RichValue.isTrue.01") {
     val input = "def f: Bool = true"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assert(model.eval("f").isTrue)
+    assert(model.eval2("f").isTrue)
   }
 
   test("RichValue.isFalse.01") {
     val input = "def f: Bool = false"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assert(model.eval("f").isFalse)
+    assert(model.eval2("f").isFalse)
   }
 
   test("RichValue.toBool.01") {
     val input = "def f: Bool = true"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assert(model.eval("f").toBool)
+    assert(model.eval2("f").toBool)
   }
 
   test("RichValue.toTuple2.01") {
     val input = "def f: (Bool, Char) = (true, 'a')"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    val (a, b) = model.eval("f").toTuple2
+    val (a, b) = model.eval2("f").toTuple2
     assertResult(true)(a.toBool)
     assertResult('a')(b.toChar)
   }
@@ -67,14 +67,14 @@ class TestRichDSL extends FunSuite with TestUtils {
     val input = "def f: Option[Int] = None"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assertResult(None)(model.eval("f").toOption)
+    assertResult(None)(model.eval2("f").toOption)
   }
 
   test("RichValue.toOption.02") {
     val input = "def f: Option[Int] = Some(42)"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    assertValue(Some(42))(model.eval("f"))
+    assertValue(Some(42))(model.eval2("f"))
   }
 
   // TODO: Add test cases.

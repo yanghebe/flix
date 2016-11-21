@@ -20,16 +20,23 @@ import ca.uwaterloo.flix.language.ast.ExecutableAst
 
 trait IModel {
 
-  // TODO: To be removed.
-  def getRoot: ExecutableAst.Root
+  /**
+    * Immediately evaluates the function with the given fully-qualified name `fqn` and the given raw arguments `args`.
+    *
+    * @param fqn  The fully-qualified name of the function to evaluate.
+    * @param args the raw arguments to pass to the function.
+    * @return the raw value returned by the function.
+    * @throws IllegalArgumentException if the function does not exist.
+    */
+  def eval(fqn: String, args: AnyRef*): AnyRef
 
-  // TODO: Rename
-  def getConstant(name: String, args: AnyRef*): AnyRef
-
-  // TODO: Rename and change types.
-  def getRelation(name: String): Iterable[List[AnyRef]]
+  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
 
   // TODO: Rename and change types.
   def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)]
+
+
+  // TODO: To be removed.
+  def getRoot: ExecutableAst.Root
 
 }
