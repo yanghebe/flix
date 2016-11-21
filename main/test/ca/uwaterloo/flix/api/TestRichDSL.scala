@@ -47,6 +47,20 @@ class TestRichDSL extends FunSuite with TestUtils {
     assert(model.eval2("f").isFalse)
   }
 
+  test("RichValue.isNone.01") {
+    val input = "def f: Option[Int] = None"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isNone)
+  }
+
+  test("RichValue.isSome.01") {
+    val input = "def f: Option[Int] = Some(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isNone)
+  }
+
   test("RichValue.toBool.01") {
     val input = "def f: Bool = true"
     val flix = new Flix().setOptions(opts).addStr(input)

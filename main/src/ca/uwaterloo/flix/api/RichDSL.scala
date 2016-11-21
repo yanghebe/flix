@@ -22,6 +22,8 @@ import ca.uwaterloo.flix.runtime.{Model, Value}
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+import languageFeature.implicitConversions
+
 // TODO: Take inspiration from WrappedValue, but not everything...
 
 object RichDSL {
