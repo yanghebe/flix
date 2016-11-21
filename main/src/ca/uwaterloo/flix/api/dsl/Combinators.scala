@@ -18,12 +18,18 @@ package ca.uwaterloo.flix.api.dsl
 
 object Combinators {
 
+  implicit class UnpackHelper(thiz: AnyRef) {
+    def as[T](c: Convert[T]): T = c.unpack(thiz)
+
+    def ass[T](implicit c: Convert[T]): T = c.unpack(thiz)
+  }
+
   sealed trait Convert[T] {
     def pack: T => AnyRef
     def unpack: AnyRef => T
   }
 
-  case object Int8 extends Convert[Byte] {
+  implicit case object Int8 extends Convert[Byte] {
     def pack: (Byte) => AnyRef = ???
     def unpack: (AnyRef) => Byte = ???
   }
@@ -46,5 +52,11 @@ object Combinators {
   val foo: AnyRef = ???
 
   val bar: List[(Byte, String)] = Lst(Tuple2(Int8, Str)).unpack("foo")
+
+  var faz = foo.as(Tuple2(Int8, Str))
+
+
+
+  var qux = foo.ass[Byte]
 
 }
