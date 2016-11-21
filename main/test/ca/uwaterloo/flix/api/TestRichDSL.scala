@@ -148,10 +148,21 @@ class TestRichDSL extends FunSuite with TestUtils {
     val input = "def f: Option[Int] = Some(42)"
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
-    // assertValue(Some(42))(model.eval2("f")) // TODO
+    assertResult(42)(model.eval2("f").toOption.get.toInt32)
   }
 
-  // TODO: Ensure that everything is tested.
+  test("RichValue.toEither.01") {
+    val input = "def f: Result[Int, Int] = Ok(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toEither.right.get.toInt32)
+  }
 
+  test("RichValue.toEither.02") {
+    val input = "def f: Result[Int, Int] = Err(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42)(model.eval2("f").toEither.left.get.toInt32)
+  }
 
 }
