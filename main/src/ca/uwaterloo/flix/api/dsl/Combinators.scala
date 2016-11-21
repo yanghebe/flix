@@ -18,6 +18,8 @@ package ca.uwaterloo.flix.api.dsl
 
 object Combinators {
 
+  // TODO: 3rd option, add an "toScala" which does a recursive translation.
+
   implicit class UnpackHelper(thiz: AnyRef) {
     def as[T](c: Convert[T]): T = c.unpack(thiz)
 
