@@ -20,9 +20,8 @@ import ca.uwaterloo.flix.language.ast.{ExecutableAst, Symbol}
 import ca.uwaterloo.flix.runtime.{Model, Value}
 
 import scala.collection.JavaConverters._
+import scala.languageFeature.implicitConversions
 import scala.util.Try
-
-import languageFeature.implicitConversions
 
 // TODO: Take inspiration from WrappedValue, but not everything...
 
@@ -64,7 +63,7 @@ object RichDSL {
       }
     }
 
-    def getRelation2(fqn: String): RichRelation = {
+    def getRelationX(fqn: String): RichRelation = {
       val sym = Symbol.mkTableSym(fqn)
       val attributes = r.tables(sym) match {
         case ExecutableAst.Table.Relation(_, attr, _) =>
@@ -73,8 +72,23 @@ object RichDSL {
       val data = m.relationOf(fqn).asScala.map {
         case row => row.asScala.toList
       }
-      new RichRelation(sym, attributes.toList, data)
+      new RichRelation(sym, attributes.toList, data.toIterable)
     }
+
+    def getRelation2(fqn: String): Relation2 = {
+      val data = getRelationX(fqn).data.map {
+        case List(x1, x2) => (new RichValue(x1), new RichValue(x2))
+      }
+      new Relation2(data)
+    }
+
+    def getRelation3(fqn: String): Relation3 = {
+      val data = getRelationX(fqn).data.map {
+        case List(x1, x2, x3) => (new RichValue(x1), new RichValue(x2), new RichValue(x3))
+      }
+      new Relation3(data)
+    }
+
 
     // TODO: Replace by better alternative.
     def getRelationOpt(fqn: String): Option[Iterator[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
@@ -85,11 +99,30 @@ object RichDSL {
   }
 
   // TODO: Relation1, Relation2, etc.
-  class RichRelation(symbol: Symbol.TableSym, attributes: List[String], data: Iterator[List[AnyRef]]) {
+  case class RichRelation(symbol: Symbol.TableSym, attributes: List[String], data: Iterable[List[AnyRef]]) {
     def attributesOf: List[String] = attributes
   }
 
-  case class Relation2(attr1: String, attr2: String, data: Iterable[(AnyRef, AnyRef)])
+  // TODO: Case classes or not? Implement iterable/traversable themselves?
+  class Relation1(data: Iterable[RichValue])
+
+  class Relation2(data: Iterable[(RichValue, RichValue)]) extends Iterable[(RichValue, RichValue)] {
+    override def iterator: Iterator[(RichValue, RichValue)] = data.iterator
+  }
+
+  class Relation3(data: Iterable[(RichValue, RichValue, RichValue)])
+
+  case class Relation4(data: Iterable[(RichValue, RichValue, RichValue, RichValue)])
+
+  case class Relation5(data: Iterable[(RichValue, RichValue, RichValue, RichValue, RichValue)])
+
+  case class Relation6(data: Iterable[(RichValue, RichValue, RichValue, RichValue, RichValue, RichValue)])
+
+  case class Relation7(data: Iterable[(RichValue, RichValue, RichValue, RichValue, RichValue, RichValue)])
+
+  case class Relation8(data: Iterable[(RichValue, RichValue, RichValue, RichValue, RichValue, RichValue)])
+
+  case class Relation9(data: Iterable[(RichValue, RichValue, RichValue, RichValue, RichValue, RichValue, RichValue)])
 
   class RichLattice() {
 
