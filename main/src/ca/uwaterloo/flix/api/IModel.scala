@@ -30,7 +30,7 @@ trait IModel {
     */
   def eval(fqn: String, args: AnyRef*): AnyRef
 
-  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
+  def relationOf(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
 
   // TODO: Rename and change types.
   def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)]

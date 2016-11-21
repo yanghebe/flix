@@ -29,7 +29,7 @@ import scala.collection.JavaConverters._
   * @param relations   the relational facts in the model.
   * @param lattices    the lattice facts in the model.
   */
-final class Model(root: ExecutableAst.Root,
+final class Model(val root: ExecutableAst.Root,
                   time: Time,
                   definitions: Map[Symbol.DefnSym, () => AnyRef],
                   relations: Map[Symbol.TableSym, Iterable[List[AnyRef]]],
@@ -49,7 +49,7 @@ final class Model(root: ExecutableAst.Root,
     }
   }
 
-  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]] = {
+  def relationOf(fqn: String): java.util.Iterator[java.util.List[AnyRef]] = {
     val sym = Symbol.mkTableSym(fqn)
     relations.get(sym) match {
       case None => ??? // TODO

@@ -16,7 +16,9 @@
 
 package ca.uwaterloo.flix.api
 
+import ca.uwaterloo.flix.language.ast.{ExecutableAst, Symbol}
 import ca.uwaterloo.flix.runtime.{Model, Value}
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 
@@ -26,7 +28,7 @@ object RichDSL {
 
   // TODO: Names .to, .as, .get?
 
-  implicit def model2rich(m: IModel): RichModel = RichModel(m)
+  implicit def model2rich(m: IModel): RichModel = new RichModel(m)
 
   // TODO: Provide some kind of equivalence on Scala values and Flix values.
 
@@ -38,7 +40,9 @@ object RichDSL {
   /**
     * An enriched Flix model.
     */
-  case class RichModel(m: IModel) {
+  class RichModel(m: IModel) {
+
+    val r: ExecutableAst.Root = m.asInstanceOf[Model].root
 
     /**
       * TODO: DOC
@@ -51,15 +55,24 @@ object RichDSL {
     def eval2(fqn: String, args: AnyRef*): RichValue = new RichValue(m.eval(fqn, args))
 
 
-    // TODO: Rename and change types.
+    // TODO: DELETE
     def getRelation(fqn: String): Iterator[List[AnyRef]] = {
-      m.relationIterator(fqn).asScala.map {
+      m.relationOf(fqn).asScala.map {
         case xs => xs.asScala.toList
       }
     }
 
-    // TODO: Avoid name clash
-    def getRelation2(fqn: String): RichRelation = ???
+    def getRelation2(fqn: String): RichRelation = {
+      val sym = Symbol.mkTableSym(fqn)
+      val attributes = r.tables(sym) match {
+        case ExecutableAst.Table.Relation(_, attr, _) =>
+          attr.map(_.name)
+      }
+      val data = m.relationOf(fqn).asScala.map {
+        case row => row.asScala.toList
+      }
+      new RichRelation(sym, attributes.toList, data)
+    }
 
     // TODO: Replace by better alternative.
     def getRelationOpt(fqn: String): Option[Iterator[List[AnyRef]]] = Try(m.getRelation(fqn)).toOption
@@ -70,10 +83,8 @@ object RichDSL {
   }
 
   // TODO: Relation1, Relation2, etc.
-  class RichRelation(rel: Iterable[List[AnyRef]]) {
-
-
-
+  class RichRelation(symbol: Symbol.TableSym, attributes: List[String], data: Iterator[List[AnyRef]]) {
+    def attributesOf: List[String] = attributes
   }
 
   class RichLattice() {
