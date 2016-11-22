@@ -21,10 +21,23 @@ import ca.uwaterloo.flix.runtime.Value
 object Converters {
 
   def toScala(ref: AnyRef): AnyRef = ref match {
+
     case java.lang.Byte => ref
+
     case o: Value.Tag => o.tag match {
-      case "None" => ??? // etc
-      case "Some" => ??? // etc
+      // Option
+      case "None" => None
+      case "Some" => Some(toScala(o.value))
+      // Result
+      case "Ok" => Right(toScala(o.value))
+      case "Err" => Left(toScala(o.value))
+      // List
+      case "Nil" => Nil
+      case "Cons" =>
+        val tuple = o.value.asInstanceOf[Value.Tuple].elms
+        val hd = tuple(0)
+        val tl = tuple(1)
+        toScala(hd) :: toScala(tl).asInstanceOf[List[AnyRef]]
     }
   }
 
