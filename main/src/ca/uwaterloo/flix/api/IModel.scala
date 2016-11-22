@@ -36,7 +36,7 @@ trait IModel {
     *
     * @throws IllegalArgumentException if the relation does not exist.
     */
-  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
+  def getRelationIter(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
 
   // TODO: Rename and change types.
   // TODO: Rename to use iterator

@@ -49,7 +49,7 @@ final class Model(val root: ExecutableAst.Root,
     }
   }
 
-  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]] = {
+  def getRelationIter(fqn: String): java.util.Iterator[java.util.List[AnyRef]] = {
     val sym = Symbol.mkTableSym(fqn)
     relations.get(sym) match {
       case None => ??? // TODO

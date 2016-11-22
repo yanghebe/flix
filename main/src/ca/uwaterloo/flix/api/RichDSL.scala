@@ -52,7 +52,7 @@ object RichDSL {
       }
       // TODO: Rely on m directly.
       // TODO: Throw exception if non-existent
-      val data = m.relationIterator(fqn).asScala.map {
+      val data = m.getRelationIter(fqn).asScala.map {
         case row => row.asScala.toList
       }
       RichRelation(sym, attributes.toList, data.toIterable)
