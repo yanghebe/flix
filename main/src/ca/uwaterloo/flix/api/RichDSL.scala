@@ -43,7 +43,7 @@ object RichDSL {
       *
       * @throws IllegalArgumentException if the relation does not exist.
       */
-    def relationOf(fqn: String): RichRelation = {
+    def getRelation(fqn: String): RichRelation = {
       // TODO: Put implementation inside the opt.
       val sym = Symbol.mkTableSym(fqn)
       val attributes = m.root.tables(sym) match {
@@ -61,7 +61,7 @@ object RichDSL {
     /**
       * Optionally returns the relation with the given fully-qualified name `fqn`.
       */
-    def relationOfOpt(fqn: String): Option[RichRelation] = Try(m.relationOf(fqn)).toOption
+    def getRelationOpt(fqn: String): Option[RichRelation] = Try(m.getRelation(fqn)).toOption
 
     // TODO: Replace by better alternative.
     def getLatticeOpt(fqn: String): Option[Iterable[(List[AnyRef], AnyRef)]] = Try(m.getLattice(fqn)).toOption

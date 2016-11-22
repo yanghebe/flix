@@ -161,8 +161,8 @@ class TestBackend extends FunSuite {
     }
 
     def checkModel(expected: AnyRef, model: String): Unit = {
-      withClue(s"interpreted model $model:") { assertResult(expected)(interpreted.relationOf(model).toSet) }
-      withClue(s"compiled model $model:") { assertResult(expected)(compiled.relationOf(model).toSet) }
+      withClue(s"interpreted model $model:") { assertResult(expected)(interpreted.getRelation(model).toSet) }
+      withClue(s"compiled model $model:") { assertResult(expected)(compiled.getRelation(model).toSet) }
     }
 
     // By default, solve the Flix program immediately.

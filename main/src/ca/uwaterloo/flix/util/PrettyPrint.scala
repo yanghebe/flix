@@ -28,7 +28,7 @@ object PrettyPrint {
 
     var found = false
 
-    model.relationOfOpt(name) match {
+    model.getRelationOpt(name) match {
       case None => // nop
       case Some(relation) =>
         val r = model.getRoot.tables(sym).asInstanceOf[ExecutableAst.Table.Relation]
