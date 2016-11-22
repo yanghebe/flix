@@ -44,6 +44,78 @@ class RichValue(private val ref: AnyRef) {
   def isFalse: Boolean = !toBool
 
   /**
+    * Returns `true` if `this` value is a character.
+    */
+  def isChar: Boolean = ref match {
+    case c: java.lang.Character => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a float.
+    */
+  def isFloat32: Boolean = ref match {
+    case f: java.lang.Float => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a double.
+    */
+  def isFloat64: Boolean = ref match {
+    case d: java.lang.Double => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a byte.
+    */
+  def isInt8: Boolean = ref match {
+    case b: java.lang.Byte => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a short.
+    */
+  def isInt16: Boolean = ref match {
+    case s: java.lang.Short => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is an integer.
+    */
+  def isInt32: Boolean = ref match {
+    case s: java.lang.Integer => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a long.
+    */
+  def isInt64: Boolean = ref match {
+    case s: java.lang.Long => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a big integer.
+    */
+  def isBigInt: Boolean = ref match {
+    case s: java.math.BigInteger => true
+    case _ => false
+  }
+
+  /**
+    * Returns `true` if `this` value is a string.
+    */
+  def isStr: Boolean = ref match {
+    case s: String => true
+    case _ => false
+  }
+
+  /**
     * Returns `true` if `this` value is the `None` value.
     */
   def isNone: Boolean = ref match {

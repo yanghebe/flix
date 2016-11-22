@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package ca.uwaterloo.flix.api
+package ca.uwaterloo.flix.api.dsl
 
 import java.math.BigInteger
 
 import ca.uwaterloo.flix.TestUtils
+import ca.uwaterloo.flix.api.Flix
 import ca.uwaterloo.flix.util.Options
 import org.scalatest.FunSuite
 
-class TestRichDSL extends FunSuite with TestUtils {
-
-  // TODO: Move into TestRichValue
+class TestRichValue extends FunSuite with TestUtils {
 
   import ca.uwaterloo.flix.api.RichDSL._
 
@@ -49,6 +48,69 @@ class TestRichDSL extends FunSuite with TestUtils {
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
     assert(model.eval2("f").isFalse)
+  }
+
+  test("RichValue.isChar.01") {
+    val input = "def f: Char = 'a'"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isChar)
+  }
+
+  test("RichValue.isFloat32.01") {
+    val input = "def f: Float32 = 42.0f32"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isFloat32)
+  }
+
+  test("RichValue.isFloat64.01") {
+    val input = "def f: Float64 = 42.0f64"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isFloat64)
+  }
+
+  test("RichValue.isInt8.01") {
+    val input = "def f: Int8 = 42i8"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isInt8)
+  }
+
+  test("RichValue.isInt16.01") {
+    val input = "def f: Int16 = 42i16"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isInt16)
+  }
+
+  test("RichValue.isInt32.01") {
+    val input = "def f: Int32 = 42i32"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isInt32)
+  }
+
+  test("RichValue.isInt64.01") {
+    val input = "def f: Int64 = 42i64"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isInt64)
+  }
+
+  test("RichValue.isBigInt.01") {
+    val input = "def f: BigInt = 42ii"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isBigInt)
+  }
+
+  test("RichValue.isStr.01") {
+    val input = "def f: Str = \"foo\""
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assert(model.eval2("f").isStr)
   }
 
   test("RichValue.isNone.01") {
