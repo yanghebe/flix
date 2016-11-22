@@ -285,10 +285,6 @@ class RichValue(private val ref: AnyRef) {
     case _ => throw new IllegalStateException(s"Value has non-list type: ${ref.getClass.getCanonicalName}.")
   }
 
-  // TODO: Add toSet
-
-  // TODO: Add toMap
-
   /**
     * Returns `true` if `this` and `that` value shared the same underlying ref.
     */

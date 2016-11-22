@@ -21,7 +21,7 @@ import ca.uwaterloo.flix.language.ast.ExecutableAst
 trait IModel {
 
   /**
-    * Immediately evaluates the function with the given fully-qualified name `fqn` and the given raw arguments `args`.
+    * Evaluates the function with the given fully-qualified name `fqn` and the given raw arguments `args`.
     *
     * @param fqn  The fully-qualified name of the function to evaluate.
     * @param args the raw arguments to pass to the function.
@@ -30,11 +30,17 @@ trait IModel {
     */
   def eval(fqn: String, args: AnyRef*): AnyRef
 
-  def relationOf(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
+
+  /**
+    * Returns an iterator over the rows of the relation with the given fully-qualified name `fqn`.
+    *
+    * @throws IllegalArgumentException if the relation does not exist.
+    */
+  def relationIterator(fqn: String): java.util.Iterator[java.util.List[AnyRef]]
 
   // TODO: Rename and change types.
+  // TODO: Rename to use iterator
   def getLattice(name: String): Iterable[(List[AnyRef], AnyRef)]
-
 
   // TODO: To be removed.
   def getRoot: ExecutableAst.Root

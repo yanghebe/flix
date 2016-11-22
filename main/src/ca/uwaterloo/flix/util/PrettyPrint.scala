@@ -28,13 +28,13 @@ object PrettyPrint {
 
     var found = false
 
-    model.getRelationOpt(name) match {
+    model.relationOfOpt(name) match {
       case None => // nop
-      case Some(xs) =>
+      case Some(relation) =>
         val r = model.getRoot.tables(sym).asInstanceOf[ExecutableAst.Table.Relation]
         val cols = r.attributes.map(_.name)
         val ascii = new AsciiTable().withCols(cols: _*)
-        for (row <- xs.toSeq.sortBy(_.head.toString)) {
+        for (row <- relation.toSeq.sortBy(_.head.toString)) {
           ascii.mkRow(row map Value.pretty)
         }
 
