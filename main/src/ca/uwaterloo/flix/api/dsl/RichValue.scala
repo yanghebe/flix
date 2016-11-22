@@ -165,40 +165,13 @@ class RichValue(private val ref: AnyRef) {
     case _ => throw new IllegalStateException(s"Value has non-tuple type: ${ref.getClass.getCanonicalName}.")
   }
 
-  //
-  //  def getTagName: String = Value.cast2tag(ref).tag
-  //
-  //  def getTagValue: IValue = new WrappedValue(Value.cast2tag(ref).value)
-
-  //  def getScalaEither: Either[IValue, IValue] = ref match {
-  //    case o: Value.Tag => o.tag match {
-  //      case "Ok" => Right(new WrappedValue(o.value))
-  //      case "Err" => Left(new WrappedValue(o.value))
-  //      case tag => throw new RuntimeException(s"Unexpected non-result tag: '$tag'.")
-  //    }
-  //    case _ => throw new RuntimeException(s"Unexpected non-result value: '$ref'.")
-  //  }
-  //
-  //
-  //  def getScalaList: immutable.List[IValue] = ref match {
-  //    case o: Value.Tag => o.tag match {
-  //      case "Nil" => Nil
-  //      case "Cons" =>
-  //        val tuple = o.value.asInstanceOf[Value.Tuple]
-  //        val hd = tuple.elms(0)
-  //        val tl = tuple.elms(1)
-  //        new WrappedValue(hd) :: new WrappedValue(tl).getScalaList
-  //      case tag => throw new RuntimeException(s"Unexpected non-list tag: '$tag'.")
-  //    }
-  //    case _ => throw new RuntimeException(s"Unexpected non-list value: '$ref'.")
-  //  }
-  //
-  //  def getScalaSet: immutable.Set[IValue] = Value.cast2set(ref).map(e => new WrappedValue(e)).toSet
-  //
-  //
-  //  def getScalaMap: immutable.Map[IValue, IValue] = Value.cast2map(ref).foldLeft(Map.empty[IValue, IValue]) {
-  //    case (macc, (k, v)) => macc + (new WrappedValue(k) -> new WrappedValue(v))
-  //  }
+  /**
+    * Returns `this` value as a tag.
+    */
+  def toTag: (String, RichValue) = ref match {
+    case o: Value.Tag => (o.tag, new RichValue(o.value))
+    case _ => throw new IllegalStateException(s"Value has non-tag type: ${ref.getClass.getCanonicalName}.")
+  }
 
   /**
     * Returns `this` value as a Scala Option.
@@ -224,11 +197,34 @@ class RichValue(private val ref: AnyRef) {
     case _ => throw new IllegalStateException(s"Value has non-result type: ${ref.getClass.getCanonicalName}.")
   }
 
+
   def toList: List[RichValue] = ???
 
-  // TODO: set
+  //
+  //
+  //  def getScalaList: immutable.List[IValue] = ref match {
+  //    case o: Value.Tag => o.tag match {
+  //      case "Nil" => Nil
+  //      case "Cons" =>
+  //        val tuple = o.value.asInstanceOf[Value.Tuple]
+  //        val hd = tuple.elms(0)
+  //        val tl = tuple.elms(1)
+  //        new WrappedValue(hd) :: new WrappedValue(tl).getScalaList
+  //      case tag => throw new RuntimeException(s"Unexpected non-list tag: '$tag'.")
+  //    }
+  //    case _ => throw new RuntimeException(s"Unexpected non-list value: '$ref'.")
+  //  }
+  //
+  //  def getScalaSet: immutable.Set[IValue] = Value.cast2set(ref).map(e => new WrappedValue(e)).toSet
+  //
+  //
+  //  def getScalaMap: immutable.Map[IValue, IValue] = Value.cast2map(ref).foldLeft(Map.empty[IValue, IValue]) {
+  //    case (macc, (k, v)) => macc + (new WrappedValue(k) -> new WrappedValue(v))
+  //  }
 
-  // TODO: map
+  // TODO: Add toSet
+
+  // TODO: Add toMap
 
   /**
     * Returns `true` if `this` and `that` value shared the same underlying ref.

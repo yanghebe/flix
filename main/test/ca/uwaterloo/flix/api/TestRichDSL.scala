@@ -128,6 +128,15 @@ class TestRichDSL extends FunSuite with TestUtils {
     assertResult("foo")(model.eval2("f").toStr)
   }
 
+  test("RichValue.toTag.01") {
+    val input = "def f: Option[Int] = Some(42)"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    val (tag, value) = model.eval2("f").toTag
+    assertResult("Some")(tag)
+    assertResult(42)(value.toInt32)
+  }
+
   test("RichValue.toTuple2.01") {
     val input = "def f: (Bool, Char) = (true, 'a')"
     val flix = new Flix().setOptions(opts).addStr(input)
