@@ -148,6 +148,20 @@ class TestRichValue extends FunSuite with TestUtils {
     assert(model.eval2("f").toBool)
   }
 
+  test("RichValue.toFloat32.01") {
+    val input = "def f: Float32 = 42.0f32"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42.0)(model.eval2("f").toFloat32)
+  }
+
+  test("RichValue.toFloat64.01") {
+    val input = "def f: Float64 = 42.0f64"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(42.0)(model.eval2("f").toFloat64)
+  }
+
   test("RichValue.toInt8.01") {
     val input = "def f: Int8 = 42i8"
     val flix = new Flix().setOptions(opts).addStr(input)
@@ -234,6 +248,20 @@ class TestRichValue extends FunSuite with TestUtils {
     val flix = new Flix().setOptions(opts).addStr(input)
     val model = flix.solve().get
     assertResult(42)(model.eval2("f").toEither.left.get.toInt32)
+  }
+
+  test("RichValue.toList.01") {
+    val input = "def f: List[Int] = Nil"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(Nil)(model.eval2("f").toList)
+  }
+
+  test("RichValue.toList.02") {
+    val input = "def f: List[Int] = 1 :: 2 :: 3 :: Nil"
+    val flix = new Flix().setOptions(opts).addStr(input)
+    val model = flix.solve().get
+    assertResult(3)(model.eval2("f").toList.length)
   }
 
 }
