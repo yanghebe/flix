@@ -22,7 +22,7 @@ object Converters {
 
   def toScala(ref: AnyRef): AnyRef = ref match {
 
-    case java.lang.Byte => ref
+      // TODO: Primitives
 
     case o: Value.Tag => o.tag match {
       // Option
