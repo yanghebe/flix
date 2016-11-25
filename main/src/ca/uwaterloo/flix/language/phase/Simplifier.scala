@@ -128,6 +128,8 @@ object Simplifier {
         }
       case TypedAst.Expression.Let(sym, e1, e2, tpe, loc) =>
         SimplifiedAst.Expression.Let(sym, simplify(e1), simplify(e2), tpe, loc)
+      case TypedAst.Expression.LetRec(sym, e1, e2, tpe, loc) =>
+        SimplifiedAst.Expression.LetRec(sym, simplify(e1), simplify(e2), tpe, loc)
 
       case TypedAst.Expression.Match(exp0, rules, tpe, loc) =>
         import SimplifiedAst.{Expression => SExp}

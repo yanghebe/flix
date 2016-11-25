@@ -577,6 +577,17 @@ object Typer {
           ) yield resultVar
 
         /*
+         * LetRec expression.
+         */
+        case NamedAst.Expression.LetRec(sym, exp1, exp2, tvar, loc) =>
+          for (
+            tpe1 <- visitExp(exp1);
+            tpe2 <- visitExp(exp2);
+            boundVar <- unifyM(sym.tvar, tpe1, loc);
+            resultVar <- unifyM(tvar, tpe2, loc)
+          ) yield resultVar
+
+        /*
          * If-then-else expression.
          */
         case NamedAst.Expression.IfThenElse(exp1, exp2, exp3, tvar, loc) =>
@@ -953,6 +964,14 @@ object Typer {
           val e1 = visitExp(exp1, subst0)
           val e2 = visitExp(exp2, subst0)
           TypedAst.Expression.Let(sym, e1, e2, subst0(tvar), loc)
+
+        /*
+         * LetRec expression.
+         */
+        case NamedAst.Expression.LetRec(sym, exp1, exp2, tvar, loc) =>
+          val e1 = visitExp(exp1, subst0)
+          val e2 = visitExp(exp2, subst0)
+          TypedAst.Expression.LetRec(sym, e1, e2, subst0(tvar), loc)
 
         /*
          * Match expression.

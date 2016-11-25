@@ -101,6 +101,8 @@ object LambdaLift {
       case Expression.StoreInt16(b, o, v) => e
       case Expression.StoreInt32(b, o, v) => e
       case Expression.Var(sym, tpe, loc) => e
+        // TODO: Must handle letrec bound symbols.
+
       case Expression.Ref(name, tpe, loc) => e
 
       case Expression.Lambda(fparams, body, tpe, loc) =>
@@ -151,6 +153,12 @@ object LambdaLift {
         Expression.IfThenElse(visit(exp1), visit(exp2), visit(exp3), tpe, loc)
       case Expression.Let(sym, exp1, exp2, tpe, loc) =>
         Expression.Let(sym, visit(exp1), visit(exp2), tpe, loc)
+      case Expression.LetRec(sym, exp1, exp2, tpe, loc) =>
+        val e1 = visit(exp1)
+        val e2 = visit(exp2)
+        // TODO:
+        Expression.Let(sym, e1, e2, tpe, loc)
+        ???
       case Expression.CheckTag(tag, exp, loc) =>
         Expression.CheckTag(tag, visit(exp), loc)
       case Expression.GetTagValue(tag, exp, tpe, loc) =>

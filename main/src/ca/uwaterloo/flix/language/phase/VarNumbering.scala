@@ -121,6 +121,8 @@ object VarNumbering {
       case Expression.UserError(tpe, loc) => i0
       case Expression.MatchError(tpe, loc) => i0
       case Expression.SwitchError(tpe, loc) => i0
+      case Expression.LetRec(sym, exp1, exp2, tpe, loc) =>
+        throw InternalCompilerException("LetRec should have been converted to closures and lifted.")
       case Expression.Lambda(args, body, tpe, loc) =>
         throw InternalCompilerException("Lambdas should have been converted to closures and lifted.")
       case Expression.MkClosure(lambda, freeVars, tpe, loc) =>

@@ -365,8 +365,17 @@ object Namer {
       case WeededAst.Expression.Let(ident, exp1, exp2, loc) =>
         // make a fresh variable symbol for the local variable.
         val sym = Symbol.freshVarSym(ident)
+        // extend the environment for the body expression with the new symbol.
         @@(namer(exp1, env0, tenv0), namer(exp2, env0 + (ident.name -> sym), tenv0)) map {
           case (e1, e2) => NamedAst.Expression.Let(sym, e1, e2, Type.freshTypeVar(), loc)
+        }
+
+      case WeededAst.Expression.LetRec(ident, exp1, exp2, loc) =>
+        // make a fresh variable symbol for the local variable.
+        val sym = Symbol.freshVarSym(ident)
+        // extend the environment for both the value and body expression with the new symbol.
+        @@(namer(exp1, env0 + (ident.name -> sym), tenv0), namer(exp2, env0 + (ident.name -> sym), tenv0)) map {
+          case (e1, e2) => NamedAst.Expression.LetRec(sym, e1, e2, Type.freshTypeVar(), loc)
         }
 
       case WeededAst.Expression.Match(exp, rules, loc) =>
@@ -482,6 +491,7 @@ object Namer {
       case WeededAst.Expression.Binary(op, exp1, exp2, loc) => freeVars(exp1) ++ freeVars(exp2)
       case WeededAst.Expression.IfThenElse(exp1, exp2, exp3, loc) => freeVars(exp1) ++ freeVars(exp2) ++ freeVars(exp3)
       case WeededAst.Expression.Let(ident, exp1, exp2, loc) => freeVars(exp1) ++ filterBoundVars(freeVars(exp2), List(ident))
+      case WeededAst.Expression.LetRec(ident, exp1, exp2, loc) => filterBoundVars(freeVars(exp1) ++ freeVars(exp2), List(ident))
       case WeededAst.Expression.Match(exp, rules, loc) => freeVars(exp) ++ rules.flatMap {
         case (pat, body) => filterBoundVars(freeVars(body), freeVars(pat))
       }

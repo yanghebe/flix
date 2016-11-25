@@ -28,6 +28,7 @@ object ClosureConv {
   /**
     * Performs closure conversion on the given expression `e`.
     */
+  // TODO: Need to know what variables are not truely free due their recursive binding.
   def convert(exp: SimplifiedAst.Expression)(implicit genSym: GenSym): SimplifiedAst.Expression = exp match {
     case SimplifiedAst.Expression.Unit => exp
     case SimplifiedAst.Expression.True => exp
@@ -141,6 +142,8 @@ object ClosureConv {
       SimplifiedAst.Expression.IfThenElse(convert(e1), convert(e2), convert(e3), tpe, loc)
     case SimplifiedAst.Expression.Let(sym, e1, e2, tpe, loc) =>
       SimplifiedAst.Expression.Let(sym, convert(e1), convert(e2), tpe, loc)
+    case SimplifiedAst.Expression.LetRec(sym, e1, e2, tpe, loc) =>
+      SimplifiedAst.Expression.LetRec(sym, convert(e1), convert(e2), tpe, loc)
     case SimplifiedAst.Expression.CheckTag(tag, e, loc) =>
       SimplifiedAst.Expression.CheckTag(tag, convert(e), loc)
     case SimplifiedAst.Expression.GetTagValue(tag, e, tpe, loc) =>

@@ -441,6 +441,11 @@ object Weeder {
               WeededAst.Expression.Match(value, rules, mkSL(sp1, sp2))
           }
 
+        case ParsedAst.Expression.LetRec(sp1, ident, exp1, exp2, sp2) =>
+          @@(Expressions.weed(exp1), Expressions.weed(exp2)) map {
+            case (value, body) => WeededAst.Expression.LetRec(ident, value, body, mkSL(sp1, sp2))
+          }
+
         case ParsedAst.Expression.Match(sp1, exp, rules, sp2) =>
           val rulesVal = rules map {
             case (pat, body) => @@(Patterns.weed(pat), visit(body))
@@ -934,6 +939,7 @@ object Weeder {
     case ParsedAst.Expression.ExtendedBinary(e1, _, _, _) => leftMostSourcePosition(e1)
     case ParsedAst.Expression.IfThenElse(sp1, _, _, _, _) => sp1
     case ParsedAst.Expression.LetMatch(sp1, _, _, _, _) => sp1
+    case ParsedAst.Expression.LetRec(sp1, _, _, _, _) => sp1
     case ParsedAst.Expression.Match(sp1, _, _, _) => sp1
     case ParsedAst.Expression.Switch(sp1, _, _) => sp1
     case ParsedAst.Expression.Tag(sp1, _, _, _, _) => sp1

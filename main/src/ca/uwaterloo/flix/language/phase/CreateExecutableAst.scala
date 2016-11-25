@@ -220,6 +220,8 @@ object CreateExecutableAst {
         ExecutableAst.Expression.IfThenElse(toExecutable(exp1), toExecutable(exp2), toExecutable(exp3), tpe, loc)
       case SimplifiedAst.Expression.Let(sym, exp1, exp2, tpe, loc) =>
         ExecutableAst.Expression.Let(sym, toExecutable(exp1), toExecutable(exp2), tpe, loc)
+      case SimplifiedAst.Expression.LetRec(sym, exp1, exp2, tpe, loc) =>
+        ExecutableAst.Expression.Let(sym, toExecutable(exp1), toExecutable(exp2), tpe, loc)
       case SimplifiedAst.Expression.CheckTag(tag, exp, loc) =>
         ExecutableAst.Expression.CheckTag(tag, toExecutable(exp), loc)
       case SimplifiedAst.Expression.GetTagValue(tag, exp, tpe, loc) =>
