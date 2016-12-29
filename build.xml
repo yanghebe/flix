@@ -4,7 +4,8 @@
     <!-- ======================================================== -->
     <!-- Initialization properties.                               -->
     <!-- ======================================================== -->
-    <property name="src.dir" value="main"/>
+    <property name="src.dir" value="main/src"/>
+    <property name="test.dir" value="main/test"/>
     <property name="out.dir" value="out"/>
     <property name="lib.dir" value="lib"/>
 
@@ -31,6 +32,8 @@
         <fileset dir="${lib.dir}">
             <include name="**/*.jar"/>
         </fileset>
+
+        <pathelement location="${out.dir}/classes"/>
     </path>
 
     <!-- ======================================================== -->
@@ -45,12 +48,20 @@
         <!-- NB: Never fork scalac: doing so will cause memory issues. -->
         <scalac srcdir="${src.dir}" destdir="${out.dir}/classes" classpathref="classpath" fork="false">
             <include name="**/*.scala"/>
+        </scalac>
+
+        <!-- Compile java sources. (Antlr4) -->
+         <javac srcdir="${src.dir}" destdir="${out.dir}/classes" classpathref="classpath" fork="false" includeantruntime="false">
             <include name="**/*.java"/>
+        </javac>
+
+        <scalac srcdir="${test.dir}" destdir="${out.dir}/classes" classpathref="classpath" fork="true">
+            <include name="**/*.scala"/>
         </scalac>
 
         <!-- Copy resources. -->
         <copy todir="${out.dir}/classes">
-            <fileset dir="${src.dir}/src" excludes="**/*.scala"/>
+            <fileset dir="${src.dir}" excludes="**/*.scala,**/*.java"/>
         </copy>
     </target>
 
