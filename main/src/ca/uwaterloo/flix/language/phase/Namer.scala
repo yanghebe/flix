@@ -76,7 +76,7 @@ object Namer {
       /*
        * Definition.
        */
-      case WeededAst.Declaration.Definition(doc, ann, ident, tparams0, fparams0, exp, tpe, loc) =>
+      case WeededAst.Declaration.Definition(doc, ann, ident, tparams0, exp, tpe, loc) =>
         // check if the definition already exists.
         val defns = prog0.definitions.getOrElse(ns0, Map.empty)
         defns.get(ident.name) match {
@@ -94,20 +94,11 @@ object Namer {
             }
             val tenv0 = tparams.map(p => p.name.name -> p.tpe).toMap
 
-            // Introduce a variable symbols for each formal parameter.
-            var pms0 = List.empty[NamedAst.FormalParam]
-            var env0 = Map.empty[String, Symbol.VarSym]
-            for (WeededAst.FormalParam(ident, tpe, loc) <- fparams0) {
-              val sym = Symbol.freshVarSym(ident)
-              pms0 = NamedAst.FormalParam(sym, Types.namer(tpe, tenv0), loc) :: pms0
-              env0 = env0 + (ident.name -> sym)
-            }
-
-            Expressions.namer(exp, env0, tenv0) map {
+            Expressions.namer(exp, Map.empty, tenv0) map {
               case e =>
                 val sym = Symbol.mkDefnSym(ns0, ident)
                 val sc = NamedAst.Scheme(tparams.map(_.tpe), Types.namer(tpe, tenv0))
-                val defn = NamedAst.Declaration.Definition(doc, ann, sym, tparams, pms0.reverse, e, sc, loc)
+                val defn = NamedAst.Declaration.Definition(doc, ann, sym, tparams, e, sc, loc)
                 prog0.copy(definitions = prog0.definitions + (ns0 -> (defns + (ident.name -> defn))))
             }
           case Some(defn) =>
@@ -220,8 +211,8 @@ object Namer {
 
         @@(botVal, topVal, leqVal, lubVal, glbVal) map {
           case (bot, top, leq, lub, glb) =>
-            val lattice = NamedAst.Declaration.BoundedLattice(Types.namer(tpe, Map.empty), bot, top, leq, lub, glb, ns0, loc)
-            prog0.copy(lattices = prog0.lattices + (Types.namer(tpe, Map.empty) -> lattice)) // NB: This just overrides any existing binding.
+            val lattice = NamedAst.Declaration.BoundedLattice(Types.namer(tpe, Map.empty[String, Type.Var]), bot, top, leq, lub, glb, ns0, loc)
+            prog0.copy(lattices = prog0.lattices + (Types.namer(tpe, Map.empty[String, Type.Var]) -> lattice)) // NB: This just overrides any existing binding.
         }
 
       /*
@@ -327,21 +318,27 @@ object Namer {
       case WeededAst.Expression.BigInt(lit, loc) => NamedAst.Expression.BigInt(lit, loc).toSuccess
       case WeededAst.Expression.Str(lit, loc) => NamedAst.Expression.Str(lit, loc).toSuccess
 
-      case WeededAst.Expression.Apply(lambda, args, loc) =>
+      case WeededAst.Expression.Apply(lambda, arg, loc) =>
         val lambdaVal = namer(lambda, env0, tenv0)
-        val argsVal = @@(args map (a => namer(a, env0, tenv0)))
-        @@(lambdaVal, argsVal) map {
-          case (e, es) => NamedAst.Expression.Apply(e, es, Type.freshTypeVar(), loc)
+        val argVal = namer(arg, env0, tenv0)
+        @@(lambdaVal, argVal) map {
+          case (e, es) => NamedAst.Expression.Apply(e, List(es), Type.freshTypeVar(), loc)
         }
 
-      case WeededAst.Expression.Lambda(params, exp, loc) =>
-        // make a fresh variable symbol for each for parameter.
-        val syms = params map (ident => Symbol.freshVarSym(ident))
-        val env1 = (params zip syms) map {
-          case (ident, sym) => ident.name -> sym
-        }
-        namer(exp, env0 ++ env1, tenv0) map {
-          case e => NamedAst.Expression.Lambda(syms, e, Type.freshTypeVar(), loc)
+      case WeededAst.Expression.Lambda(param, exp, loc) =>
+        // Generate a fresh variable symbol for the parameter.
+        val freshSym = Symbol.freshVarSym(param.ident)
+
+        // Add the fresh symbol to the variable environment.
+        val extendedEnv = env0 + (param.ident.name -> freshSym)
+
+        // Perform naming on the type of the parameter.
+        val tpe = Types.namer(param.tpe, tenv0)
+
+        namer(exp, extendedEnv, tenv0) map {
+          case e =>
+            val p = NamedAst.FormalParam(freshSym, tpe, loc)
+            NamedAst.Expression.Lambda(p, e, Type.freshTypeVar(), loc)
         }
 
       case WeededAst.Expression.Unary(op, exp, loc) => namer(exp, env0, tenv0) map {
@@ -436,8 +433,8 @@ object Namer {
       case WeededAst.Expression.Int64(lit, loc) => Nil
       case WeededAst.Expression.BigInt(lit, loc) => Nil
       case WeededAst.Expression.Str(lit, loc) => Nil
-      case WeededAst.Expression.Apply(lambda, args, loc) => freeVars(lambda) ++ args.flatMap(freeVars)
-      case WeededAst.Expression.Lambda(params, exp, loc) => filterBoundVars(freeVars(exp), params)
+      case WeededAst.Expression.Apply(lambda, arg, loc) => freeVars(lambda) ++ freeVars(arg)
+      case WeededAst.Expression.Lambda(param, exp, loc) => filterBoundVars(freeVars(exp), List(param.ident))
       case WeededAst.Expression.Unary(op, exp, loc) => freeVars(exp)
       case WeededAst.Expression.Binary(op, exp1, exp2, loc) => freeVars(exp1) ++ freeVars(exp2)
       case WeededAst.Expression.IfThenElse(exp1, exp2, exp3, loc) => freeVars(exp1) ++ freeVars(exp2) ++ freeVars(exp3)
@@ -585,6 +582,16 @@ object Namer {
   object Types {
 
     /**
+      * Translates the given optional weeded type `tpe` into a named type under the given type environment `tenv0`.
+      *
+      * Returns a fresh type variable if the type is absent.
+      */
+    def namer(tpe: Option[WeededAst.Type], tenv0: Map[String, Type.Var])(implicit genSym: GenSym): NamedAst.Type = tpe match {
+      case None => NamedAst.Type.Var(Type.freshTypeVar(), SourceLocation.Unknown)
+      case Some(t) => namer(t, tenv0)
+    }
+
+    /**
       * Translates the given weeded type `tpe` into a named type under the given type environment `tenv0`.
       */
     def namer(tpe: WeededAst.Type, tenv0: Map[String, Type.Var])(implicit genSym: GenSym): NamedAst.Type = {
@@ -603,7 +610,7 @@ object Namer {
           else
             NamedAst.Type.Ref(qname, loc)
         case WeededAst.Type.Tuple(elms, loc) => NamedAst.Type.Tuple(elms.map(e => visit(e, env)), loc)
-        case WeededAst.Type.Arrow(tparams, tresult, loc) => NamedAst.Type.Arrow(tparams.map(t => visit(t, env)), visit(tresult, env), loc)
+        case WeededAst.Type.Arrow(tpe1, tpe2, loc) => NamedAst.Type.Arrow(visit(tpe1, env), visit(tpe2, env), loc)
         case WeededAst.Type.Apply(base, tparams, loc) => NamedAst.Type.Apply(visit(base, env), tparams.map(t => visit(t, env)), loc)
       }
 

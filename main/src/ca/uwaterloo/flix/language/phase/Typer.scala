@@ -122,7 +122,7 @@ object Typer {
           * Performs type inference and reassembly on the given definition `defn` in the given namespace `ns`.
           */
         def visitDefn(defn: NamedAst.Declaration.Definition, ns: Name.NName): Result[(Symbol.DefnSym, TypedAst.Declaration.Definition), TypeError] = defn match {
-          case NamedAst.Declaration.Definition(doc, ann, sym, tparams, params, exp, tpe, loc) =>
+          case NamedAst.Declaration.Definition(doc, ann, sym, tparams, exp, tpe, loc) =>
             infer(defn, ns, program) map {
               case d => sym -> d
             }
@@ -150,21 +150,15 @@ object Typer {
           case Err(e) => return Err(e)
         }
 
-        // TODO: Some duplication
-        val argumentTypes = Disambiguation.resolve(defn0.params.map(_.tpe), ns0, program) match {
-          case Ok(tpes) => tpes
-          case Err(e) => return Err(e)
-        }
-
         val result = for (
           resultType <- Expressions.infer(defn0.exp, ns0, program);
-          unifiedType <- unifyM(Scheme.instantiate(declaredScheme), Type.mkArrow(argumentTypes, resultType), defn0.loc)
+          unifiedType <- unifyM(Scheme.instantiate(declaredScheme), resultType, defn0.loc)
         ) yield unifiedType
 
         // TODO: See if this can be rewritten nicer
         result match {
           case InferMonad(run) =>
-            val subst = getSubstFromParams(defn0.params, ns0, program).get
+            val subst = Unification.Substitution.empty
             run(subst) match {
               case Ok((subst0, resultType)) =>
                 val exp = Expressions.reassemble(defn0.exp, ns0, program, subst0)
@@ -174,13 +168,8 @@ object Typer {
                     TypedAst.TypeParam(name, tpe, loc)
                 }
 
-                // Translate the named formals into typed formals.
-                val formals = defn0.params.map {
-                  case NamedAst.FormalParam(sym, tpe, loc) =>
-                    TypedAst.FormalParam(sym, subst0(sym.tvar), sym.loc)
-                }
 
-                Ok(TypedAst.Declaration.Definition(defn0.doc, defn0.ann, defn0.sym, tparams, formals, exp, resultType, defn0.loc))
+                Ok(TypedAst.Declaration.Definition(defn0.doc, defn0.ann, defn0.sym, tparams, Nil, exp, resultType, defn0.loc)) // TODO: Remove formals
 
               case Err(e) => Err(e)
             }
@@ -466,12 +455,15 @@ object Typer {
         /*
          * Lambda expression.
          */
-        case NamedAst.Expression.Lambda(args, body, tvar, loc) =>
-          val argumentTypes = args.map(_.tvar)
-          for (
-            inferredBodyType <- visitExp(body);
-            resultType <- unifyM(tvar, Type.mkArrow(argumentTypes, inferredBodyType), loc)
-          ) yield resultType
+        case NamedAst.Expression.Lambda(fparam, body, tvar, loc) =>
+          Disambiguation.resolve(fparam.tpe, ns0, program) match {
+            case Ok(paramType) =>
+              for (
+                inferredBodyType <- visitExp(body);
+                resultType <- unifyM(tvar, Type.mkArrow(paramType, inferredBodyType), loc)
+              ) yield resultType
+            case Err(e) => failM(e)
+          }
 
         /*
          * Apply expression.
@@ -863,13 +855,11 @@ object Typer {
         /*
          * Lambda expression.
          */
-        case NamedAst.Expression.Lambda(params, exp, tvar, loc) =>
-          val lambdaArgs = params map {
-            case sym => TypedAst.FormalParam(sym, subst0(sym.tvar), sym.loc)
-          }
+        case NamedAst.Expression.Lambda(fparam, exp, tvar, loc) =>
+          val lambdaParam = TypedAst.FormalParam(fparam.sym, subst0(fparam.sym.tvar), fparam.sym.loc)
           val lambdaBody = visitExp(exp, subst0)
           val lambdaType = subst0(tvar)
-          TypedAst.Expression.Lambda(lambdaArgs, lambdaBody, lambdaType, loc)
+          TypedAst.Expression.Lambda(List(lambdaParam), lambdaBody, lambdaType, loc) // TODO: Consider changing lambda here to use only one param..
 
         /*
          * Unary expression.
@@ -1090,14 +1080,9 @@ object Typer {
       case NamedAst.Predicate.Body.Filter(qname, terms, loc) =>
         Disambiguation.lookupRef(qname, ns0, program) match {
           case Ok(RefTarget.Defn(ns, defn)) =>
-            val expectedTypes = Disambiguation.resolve(defn.params.map(_.tpe), ns, program) match {
-              case Ok(tpes) => tpes
-              case Err(e) => return failM(e)
-            }
             for (
-              actualTypes <- seqM(terms.map(t => Expressions.infer(t, ns0, program)));
-              unifiedTypes <- Unification.unifyM(expectedTypes, actualTypes, loc)
-            ) yield unifiedTypes
+              actualTypes <- seqM(terms.map(t => Expressions.infer(t, ns0, program)))
+            ) yield actualTypes
           case Ok(RefTarget.Hook(hook)) =>
             val Type.Apply(Type.Arrow(l), ts) = hook.tpe
             val declaredTypes = ts.take(l - 1)

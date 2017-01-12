@@ -213,11 +213,11 @@ object Disambiguation {
       for (
         elms <- seqM(elms0.map(tpe => resolve(tpe, ns0, program)))
       ) yield Type.mkFTuple(elms)
-    case NamedAst.Type.Arrow(tparams0, tresult0, loc) =>
+    case NamedAst.Type.Arrow(tpe1, tpe2, loc) =>
       for (
-        tparams <- seqM(tparams0.map(tpe => resolve(tpe, ns0, program)));
-        tresult <- resolve(tresult0, ns0, program)
-      ) yield Type.mkArrow(tparams, tresult)
+        t1 <- resolve(tpe1, ns0, program);
+        t2 <- resolve(tpe2, ns0, program)
+      ) yield Type.mkArrow(t1, t2)
     case NamedAst.Type.Apply(base0, tparams0, loc) =>
       for (
         baseType <- resolve(base0, ns0, program);

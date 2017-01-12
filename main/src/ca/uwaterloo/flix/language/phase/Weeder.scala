@@ -77,8 +77,7 @@ object Weeder {
         paramsOpt match {
           case None => @@(annVal, expVal) flatMap {
             case (as, e) =>
-              val t = WeededAst.Type.Arrow(Nil, Types.weed(tpe), loc)
-              WeededAst.Declaration.Definition(doc, as, ident, tparams, Nil, e, t, loc).toSuccess
+              WeededAst.Declaration.Definition(doc, as, ident, tparams, e, Types.weed(tpe), loc).toSuccess
           }
           case Some(Nil) => IllegalParameterList(loc).toFailure
           case Some(params) =>
@@ -88,8 +87,10 @@ object Weeder {
             val formalsVal = checkDuplicateFormal(params)
             @@(annVal, formalsVal, expVal) map {
               case (as, fs, e) =>
-                val t = WeededAst.Type.Arrow(fs map (_.tpe), Types.weed(tpe), loc)
-                WeededAst.Declaration.Definition(doc, as, ident, tparams, fs, e, t, loc)
+                val t = params.foldRight(Types.weed(tpe)) {
+                  case (param, acc) => WeededAst.Type.Arrow(Types.weed(param.tpe), acc, loc)
+                }
+                WeededAst.Declaration.Definition(doc, as, ident, tparams, curry(fs, e, loc), t, loc)
             }
         }
 
@@ -141,8 +142,7 @@ object Weeder {
             case None =>
               // Rewrite to Definition.
               val ann = Ast.Annotations(List(Ast.Annotation.Law(loc)))
-              val t = WeededAst.Type.Arrow(Nil, Types.weed(tpe), loc)
-              WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, Nil, e, t, loc).toSuccess
+              WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, e, Types.weed(tpe), loc).toSuccess
             case Some(Nil) => IllegalParameterList(mkSL(sp1, sp2)).toFailure
             case Some(params) =>
               /*
@@ -152,8 +152,10 @@ object Weeder {
                 case fs =>
                   // Rewrite to Definition.
                   val ann = Ast.Annotations(List(Ast.Annotation.Law(loc)))
-                  val t = WeededAst.Type.Arrow(fs map (_.tpe), Types.weed(tpe), loc)
-                  WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, fs, e, t, loc)
+                  val t = params.foldRight(Types.weed(tpe)) {
+                    case (param, acc) => WeededAst.Type.Arrow(Types.weed(param.tpe), acc, loc)
+                  }
+                  WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, curry(fs, e, loc), t, loc)
               }
           }
         }
@@ -330,8 +332,8 @@ object Weeder {
 
         case ParsedAst.Expression.Apply(lambda, args, sp2) =>
           val sp1 = leftMostSourcePosition(lambda)
-          @@(visit(lambda), @@(args map visit)) flatMap {
-            case (e, as) => WeededAst.Expression.Apply(e, as, mkSL(sp1, sp2)).toSuccess
+          @@(visit(lambda), @@(args map visit)) map {
+            case (e, as) => mkCurryApply(e, as, mkSL(sp1, sp2))
           }
 
         case ParsedAst.Expression.Infix(exp1, name, exp2, sp2) =>
@@ -342,7 +344,7 @@ object Weeder {
             case (e1, e2) =>
               val loc = mkSL(leftMostSourcePosition(exp1), sp2)
               val lambda = WeededAst.Expression.VarOrRef(name, loc)
-              WeededAst.Expression.Apply(lambda, List(e1, e2), loc)
+              mkCurryApply(lambda, List(e1, e2), loc)
           }
 
         case ParsedAst.Expression.Postfix(exp, name, exps, sp2) =>
@@ -355,7 +357,7 @@ object Weeder {
               val loc = mkSL(sp1, sp2)
               val qname = Name.QName(sp1, Name.RootNS, name, sp2)
               val lambda = WeededAst.Expression.VarOrRef(qname, loc)
-              WeededAst.Expression.Apply(lambda, e :: es, loc)
+              mkCurryApply(lambda, e :: es, loc)
           }
 
         case ParsedAst.Expression.Lambda(sp1, params, exp, sp2) =>
@@ -365,7 +367,7 @@ object Weeder {
           checkDuplicateFormal2(params) flatMap {
             case ps =>
               visit(exp) map {
-                case e => WeededAst.Expression.Lambda(params.toList, e, mkSL(sp1, sp2))
+                case e => curry(params, e, mkSL(sp1, sp2))
               }
           }
 
@@ -376,13 +378,16 @@ object Weeder {
           @@(Patterns.weed(pat), Expressions.weed(exp)) map {
             case (p, e) =>
               val loc = mkSL(sp1, sp2)
+
               // The name of the lambda parameter.
               val ident = Name.Ident(sp1, "pat$0", sp2)
               val qname = Name.QName(sp1, Name.RootNS, ident, sp2)
+              val param = WeededAst.FormalParam(ident, None, loc)
+
               // Construct the body of the lambda expression.
               val varOrRef = WeededAst.Expression.VarOrRef(qname, loc)
               val body = WeededAst.Expression.Match(varOrRef, List(p -> e), loc)
-              WeededAst.Expression.Lambda(List(ident), body, loc)
+              WeededAst.Expression.Lambda(param, body, loc)
           }
 
         case ParsedAst.Expression.Unary(sp1, op, exp, sp2) =>
@@ -860,7 +865,7 @@ object Weeder {
                 case as =>
                   val lam = WeededAst.Expression.VarOrRef(law, loc)
                   val fun = WeededAst.Expression.VarOrRef(Name.QName(sp1, Name.RootNS, defn, sp2), loc)
-                  val exp = WeededAst.Expression.Apply(lam, fun :: as, loc)
+                  val exp = mkCurryApply(lam, fun :: as, loc)
                   WeededAst.Declaration.Property(law, defn, exp, loc)
               }
           })
@@ -882,7 +887,10 @@ object Weeder {
       case ParsedAst.Type.Var(sp1, ident, sp2) => WeededAst.Type.Var(ident, mkSL(sp1, sp2))
       case ParsedAst.Type.Ref(sp1, qname, sp2) => WeededAst.Type.Ref(qname, mkSL(sp1, sp2))
       case ParsedAst.Type.Tuple(sp1, elms, sp2) => WeededAst.Type.Tuple(elms.toList.map(weed), mkSL(sp1, sp2))
-      case ParsedAst.Type.Arrow(sp1, tparams, tresult, sp2) => WeededAst.Type.Arrow(tparams.toList.map(weed), weed(tresult), mkSL(sp1, sp2))
+      case ParsedAst.Type.Arrow(sp1, tparams, tresult, sp2) =>
+        tparams.foldRight(weed(tresult)) {
+          case (tparam, acc) => WeededAst.Type.Arrow(weed(tparam), acc, mkSL(sp1, sp2))
+        }
       case ParsedAst.Type.Infix(tpe1, base, tpe2, sp2) =>
         /*
          * Rewrites infix type applications to regular type applications.
@@ -899,7 +907,34 @@ object Weeder {
     */
   def mkApply(fqn: String, args: List[WeededAst.Expression], sp1: SourcePosition, sp2: SourcePosition): WeededAst.Expression = {
     val lambda = WeededAst.Expression.VarOrRef(Name.mkQName(fqn, sp1, sp2), mkSL(sp1, sp2))
-    WeededAst.Expression.Apply(lambda, args, mkSL(sp1, sp2))
+    mkCurryApply(lambda, args, mkSL(sp1, sp2))
+  }
+
+  /**
+    * Returns a sequence of lambda abstractions for each parameter in `idents`.
+    *
+    * Uses the given expression `body` as the base case, i.e. the body of the innermost lambda.
+    */
+  def curry(idents: Seq[Name.Ident], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression =
+    idents.foldRight(body) {
+      case (ident, exp) =>
+        val param = WeededAst.FormalParam(ident, None, ident.loc)
+        WeededAst.Expression.Lambda(param, exp, loc)
+    }
+
+  def curry(idents: List[WeededAst.FormalParam], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression =
+    idents.foldRight(body) {
+      case (param, exp) =>
+        WeededAst.Expression.Lambda(param, exp, loc)
+    }
+
+  /**
+    * TODO: DOC
+    */
+  def mkCurryApply(lambda: WeededAst.Expression, args: List[WeededAst.Expression], loc: SourceLocation): WeededAst.Expression = {
+    args.foldLeft(lambda) {
+      case (acc, arg) => WeededAst.Expression.Apply(acc, arg, loc)
+    }
   }
 
   /**
@@ -975,12 +1010,12 @@ object Weeder {
   /**
     * Alias for SourceLocation.mk
     */
-  private def mkSL(sp1: SourcePosition, sp2: SourcePosition): SourceLocation = SourceLocation.mk(sp1, sp2)
+  def mkSL(sp1: SourcePosition, sp2: SourcePosition): SourceLocation = SourceLocation.mk(sp1, sp2)
 
   /**
     * Returns the left most source position in the sub-tree of the expression `e`.
     */
-  private def leftMostSourcePosition(e: ParsedAst.Expression): SourcePosition = e match {
+  def leftMostSourcePosition(e: ParsedAst.Expression): SourcePosition = e match {
     case ParsedAst.Expression.Wild(sp1, _) => sp1
     case ParsedAst.Expression.SName(sp1, _, _) => sp1
     case ParsedAst.Expression.QName(sp1, _, _) => sp1
@@ -1012,7 +1047,7 @@ object Weeder {
   /**
     * Returns the left most source position in the sub-tree of the type `tpe`.
     */
-  private def leftMostSourcePosition(tpe: ParsedAst.Type): SourcePosition = tpe match {
+  def leftMostSourcePosition(tpe: ParsedAst.Type): SourcePosition = tpe match {
     case ParsedAst.Type.Unit(sp1, _) => sp1
     case ParsedAst.Type.Var(sp1, _, _) => sp1
     case ParsedAst.Type.Ref(sp1, _, _) => sp1
@@ -1025,7 +1060,7 @@ object Weeder {
   /**
     * Checks that no attributes are repeated.
     */
-  private def checkDuplicateAttribute(attrs: Seq[ParsedAst.Attribute]): Validation[List[WeededAst.Attribute], WeederError] = {
+  def checkDuplicateAttribute(attrs: Seq[ParsedAst.Attribute]): Validation[List[WeededAst.Attribute], WeederError] = {
     val seen = mutable.Map.empty[String, ParsedAst.Attribute]
     @@(attrs.map {
       case attr@ParsedAst.Attribute(sp1, ident, tpe, sp2) => seen.get(ident.name) match {
@@ -1043,13 +1078,13 @@ object Weeder {
   /**
     * Checks that no formal parameters are repeated.
     */
-  private def checkDuplicateFormal(params: Seq[ParsedAst.FormalParam]): Validation[List[WeededAst.FormalParam], WeederError] = {
+  def checkDuplicateFormal(params: Seq[ParsedAst.FormalParam]): Validation[List[WeededAst.FormalParam], WeederError] = {
     val seen = mutable.Map.empty[String, ParsedAst.FormalParam]
     @@(params.map {
       case param@ParsedAst.FormalParam(sp1, ident, tpe, sp2) => seen.get(ident.name) match {
         case None =>
           seen += (ident.name -> param)
-          WeededAst.FormalParam(ident, Types.weed(tpe), mkSL(sp1, sp2)).toSuccess
+          WeededAst.FormalParam(ident, Some(Types.weed(tpe)), mkSL(sp1, sp2)).toSuccess
         case Some(otherParam) =>
           val loc1 = mkSL(otherParam.sp1, otherParam.sp2)
           val loc2 = mkSL(param.sp1, param.sp2)
@@ -1061,7 +1096,7 @@ object Weeder {
   /**
     * Checks that no formal parameters are repeated.
     */
-  private def checkDuplicateFormal2(params: Seq[Name.Ident]): Validation[List[Name.Ident], WeederError] = {
+  def checkDuplicateFormal2(params: Seq[Name.Ident]): Validation[List[Name.Ident], WeederError] = {
     val seen = mutable.Map.empty[String, Name.Ident]
     @@(params.map {
       case ident => seen.get(ident.name) match {
