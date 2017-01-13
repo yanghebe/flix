@@ -77,7 +77,8 @@ object Weeder {
         paramsOpt match {
           case None => @@(annVal, expVal) flatMap {
             case (as, e) =>
-              WeededAst.Declaration.Definition(doc, as, ident, tparams, e, Types.weed(tpe), loc).toSuccess
+              val t = WeededAst.Type.Arrow(WeededAst.Type.Unit(loc), Types.weed(tpe), loc)
+              WeededAst.Declaration.Definition(doc, as, ident, tparams, curry2(Nil, e, loc), t, loc).toSuccess
           }
           case Some(Nil) => IllegalParameterList(loc).toFailure
           case Some(params) =>
@@ -90,7 +91,7 @@ object Weeder {
                 val t = params.foldRight(Types.weed(tpe)) {
                   case (param, acc) => WeededAst.Type.Arrow(Types.weed(param.tpe), acc, loc)
                 }
-                WeededAst.Declaration.Definition(doc, as, ident, tparams, curry(fs, e, loc), t, loc)
+                WeededAst.Declaration.Definition(doc, as, ident, tparams, curry2(fs, e, loc), t, loc)
             }
         }
 
@@ -142,7 +143,8 @@ object Weeder {
             case None =>
               // Rewrite to Definition.
               val ann = Ast.Annotations(List(Ast.Annotation.Law(loc)))
-              WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, e, Types.weed(tpe), loc).toSuccess
+              val t = WeededAst.Type.Arrow(WeededAst.Type.Unit(loc), Types.weed(tpe), loc)
+              WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, e, t, loc).toSuccess
             case Some(Nil) => IllegalParameterList(mkSL(sp1, sp2)).toFailure
             case Some(params) =>
               /*
@@ -155,7 +157,7 @@ object Weeder {
                   val t = params.foldRight(Types.weed(tpe)) {
                     case (param, acc) => WeededAst.Type.Arrow(Types.weed(param.tpe), acc, loc)
                   }
-                  WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, curry(fs, e, loc), t, loc)
+                  WeededAst.Declaration.Definition(doc, ann, ident, tparams.map(_.ident).toList, curry2(fs, e, loc), t, loc)
               }
           }
         }
@@ -333,7 +335,7 @@ object Weeder {
         case ParsedAst.Expression.Apply(lambda, args, sp2) =>
           val sp1 = leftMostSourcePosition(lambda)
           @@(visit(lambda), @@(args map visit)) map {
-            case (e, as) => mkCurryApply(e, as, mkSL(sp1, sp2))
+            case (e, as) => mkCurriedApply(e, as, mkSL(sp1, sp2))
           }
 
         case ParsedAst.Expression.Infix(exp1, name, exp2, sp2) =>
@@ -344,7 +346,7 @@ object Weeder {
             case (e1, e2) =>
               val loc = mkSL(leftMostSourcePosition(exp1), sp2)
               val lambda = WeededAst.Expression.VarOrRef(name, loc)
-              mkCurryApply(lambda, List(e1, e2), loc)
+              mkCurriedApply(lambda, List(e1, e2), loc)
           }
 
         case ParsedAst.Expression.Postfix(exp, name, exps, sp2) =>
@@ -357,7 +359,7 @@ object Weeder {
               val loc = mkSL(sp1, sp2)
               val qname = Name.QName(sp1, Name.RootNS, name, sp2)
               val lambda = WeededAst.Expression.VarOrRef(qname, loc)
-              mkCurryApply(lambda, e :: es, loc)
+              mkCurriedApply(lambda, e :: es, loc)
           }
 
         case ParsedAst.Expression.Lambda(sp1, params, exp, sp2) =>
@@ -865,7 +867,7 @@ object Weeder {
                 case as =>
                   val lam = WeededAst.Expression.VarOrRef(law, loc)
                   val fun = WeededAst.Expression.VarOrRef(Name.QName(sp1, Name.RootNS, defn, sp2), loc)
-                  val exp = mkCurryApply(lam, fun :: as, loc)
+                  val exp = mkCurriedApply(lam, fun :: as, loc)
                   WeededAst.Declaration.Property(law, defn, exp, loc)
               }
           })
@@ -907,31 +909,48 @@ object Weeder {
     */
   def mkApply(fqn: String, args: List[WeededAst.Expression], sp1: SourcePosition, sp2: SourcePosition): WeededAst.Expression = {
     val lambda = WeededAst.Expression.VarOrRef(Name.mkQName(fqn, sp1, sp2), mkSL(sp1, sp2))
-    mkCurryApply(lambda, args, mkSL(sp1, sp2))
+    mkCurriedApply(lambda, args, mkSL(sp1, sp2))
   }
 
-  /**
-    * Returns a sequence of lambda abstractions for each parameter in `idents`.
-    *
-    * Uses the given expression `body` as the base case, i.e. the body of the innermost lambda.
-    */
-  def curry(idents: Seq[Name.Ident], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression =
+
+  // TODO: DOC
+  def curry(idents: Seq[Name.Ident], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression = {
+    if (idents.isEmpty) {
+      ???
+    }
+
     idents.foldRight(body) {
       case (ident, exp) =>
         val param = WeededAst.FormalParam(ident, None, ident.loc)
         WeededAst.Expression.Lambda(param, exp, loc)
     }
 
-  def curry(idents: List[WeededAst.FormalParam], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression =
+  }
+
+  // TODO: DOC
+  def curry2(idents: List[WeededAst.FormalParam], body: WeededAst.Expression, loc: SourceLocation): WeededAst.Expression = {
+    if (idents.isEmpty) {
+      // TODO: refactor out?
+
+      val ident = Name.Ident(SourcePosition.Unknown, "$unit$", SourcePosition.Unknown)
+      val fparam = WeededAst.FormalParam(ident, None, loc)
+      return WeededAst.Expression.Lambda(fparam, body, loc)
+    }
+
     idents.foldRight(body) {
       case (param, exp) =>
         WeededAst.Expression.Lambda(param, exp, loc)
     }
+  }
 
-  /**
-    * TODO: DOC
-    */
-  def mkCurryApply(lambda: WeededAst.Expression, args: List[WeededAst.Expression], loc: SourceLocation): WeededAst.Expression = {
+
+  // TODO: DOC
+  def mkCurriedApply(lambda: WeededAst.Expression, args: List[WeededAst.Expression], loc: SourceLocation): WeededAst.Expression = {
+    if (args.isEmpty) {
+      val unit = WeededAst.Expression.Unit(loc)
+      return WeededAst.Expression.Apply(lambda, unit, loc)
+    }
+
     args.foldLeft(lambda) {
       case (acc, arg) => WeededAst.Expression.Apply(acc, arg, loc)
     }
