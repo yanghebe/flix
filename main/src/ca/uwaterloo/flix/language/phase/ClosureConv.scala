@@ -103,17 +103,23 @@ object ClosureConv {
 
     case SimplifiedAst.Expression.Hook(hook, tpe, loc) =>
       // Retrieve the type of the function.
-      val Type.Apply(Type.Arrow(l), ts) = tpe
-      val (targs, tresult) = (ts.take(l - 1), ts.last)
+      tpe match {
+        case Type.Apply(Type.Arrow(l), ts) =>
+          val (targs, tresult) = (ts.take(l - 1), ts.last)
 
-      // Wrap the hook inside a lambda, so we can create a closure.
-      val args = targs.map { t => SimplifiedAst.FormalParam(Symbol.freshVarSym("hookArg"), t) }
-      val hookArgs = args.map { f => SimplifiedAst.Expression.Var(f.sym, f.tpe, loc) }
-      val body = SimplifiedAst.Expression.ApplyHook(hook, hookArgs, tresult, loc)
-      val lambda = SimplifiedAst.Expression.Lambda(args, body, hook.tpe, loc)
+          // Wrap the hook inside a lambda, so we can create a closure.
+          val args = targs.map { t => SimplifiedAst.FormalParam(Symbol.freshVarSym("hookArg"), t) }
+          val hookArgs = args.map { f => SimplifiedAst.Expression.Var(f.sym, f.tpe, loc) }
+          val body = SimplifiedAst.Expression.ApplyHook(hook, hookArgs, tresult, loc)
+          val lambda = SimplifiedAst.Expression.Lambda(args, body, hook.tpe, loc)
 
-      // Closure convert the lambda.
-      convert(lambda)
+          // Closure convert the lambda.
+          convert(lambda)
+
+        case _ =>
+          SimplifiedAst.Expression.ApplyHook(hook, Nil, tpe, loc)
+      }
+
     case SimplifiedAst.Expression.MkClosure(lambda, freeVars, tpe, loc) =>
       throw InternalCompilerException(s"Illegal expression during closure conversion: '$exp'.")
     case SimplifiedAst.Expression.MkClosureRef(ref, freeVars, tpe, loc) =>
