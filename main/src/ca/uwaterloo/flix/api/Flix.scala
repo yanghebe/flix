@@ -704,7 +704,7 @@ class Flix {
 
     // Symbol, type, and hook.
     val sym = Symbol.mkDefnSym("genSymHook")
-    val tpe = Type.mkArrow(Type.Unit, Type.Int32)
+    val tpe = Type.Int32
     val inv = new InvokableUnsafe {
       def apply(args: Array[AnyRef]): AnyRef = {
         if (!options.impure)

@@ -93,7 +93,7 @@ object Codegen {
      * generated for that closure, and not its JVM type descriptor. We don't want a type descriptor to look like
      * `((II)I)I`.
      */
-    def descriptor(tpe: Type): String = {
+    def descriptor(tpe: Type, hack: Boolean = false): String = {
       def inner(tpe: Type): String = tpe match {
         case Type.Var(id, kind) => asm.Type.getDescriptor(Constants.objectClass) // TODO
         case Type.Unit => asm.Type.getDescriptor(Constants.unitClass)
@@ -116,7 +116,11 @@ object Codegen {
       }
 
       tpe match {
-        case Type.Apply(Type.Arrow(l), ts) => s"(${ts.take(l - 1).map(inner).mkString})${inner(ts.last)}"
+        case Type.Apply(Type.Arrow(l), ts) =>
+          if (hack)
+            s"L${decorate(interfaces(tpe))};"
+          else
+            s"(${ts.take(l - 1).map(inner).mkString})${inner(ts.last)}"
         case _ => inner(tpe)
       }
     }
@@ -213,7 +217,7 @@ object Codegen {
    */
   private def compileFunction(ctx: Context, visitor: ClassVisitor)(function: Definition.Constant): Unit = {
     val flags = if (function.isSynthetic) ACC_PUBLIC + ACC_STATIC + ACC_SYNTHETIC else ACC_PUBLIC + ACC_STATIC
-    val mv = visitor.visitMethod(flags, function.sym.suffix, ctx.descriptor(function.tpe), null, null)
+    val mv = visitor.visitMethod(flags, function.sym.suffix, ctx.descriptor(function.tpe, hack = true), null, null)
     mv.visitCode()
 
     val entryPoint = new Label()
