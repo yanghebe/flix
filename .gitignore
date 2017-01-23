@@ -5,3 +5,9 @@
 /*.iml
 /flix.jar
 target
+/bin/
+
+.classpath
+.project
+.cache-main
+.settings/

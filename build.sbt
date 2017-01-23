@@ -11,7 +11,8 @@ lazy val dependencies = Seq(
   "org.json4s" %% "json4s-native" % "3.2.11",
   "org.ow2.asm" % "asm" % "5.0.4",
   "org.ow2.asm" % "asm-util" % "5.0.4",
-  "org.ow2.asm" % "asm-analysis" % "5.0.4"
+  "org.ow2.asm" % "asm-analysis" % "5.0.4",
+  "com.h2database" % "h2" % "1.4.177"
 )
 
 lazy val flix = (project in file("."))
