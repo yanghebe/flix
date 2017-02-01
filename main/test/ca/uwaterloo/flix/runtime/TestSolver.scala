@@ -314,6 +314,9 @@ class TestSolver extends FunSuite {
     val A = model.getRelation("A").toList
     val B = model.getRelation("B").toList
     val C = model.getRelation("C").toList
+    println(A)
+    println(B)
+    println(C)
     assert(C contains List(Value.mkInt32(1), Value.mkInt32(3)))
     assert(A contains List(Value.mkInt32(1), Value.mkInt32(5)))
     assert(B contains List(Value.mkInt32(1), Value.mkInt32(6)))

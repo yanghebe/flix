@@ -6,8 +6,10 @@ import org.scalatest.FunSuite
 class EvaluatorTest extends FunSuite {
   test("evaluator api") {
     println(LatticeElement(3))
-    val myHeadAtom: HeadAtom = new HeadAtom(
-      Predicate("x"), List(KeyVar("y"), KeyVar("z"), KeyVar("d")), (x: List[Any]) => x)
+    val myHeadAtom: HeadAtom = HeadAtom(
+      Predicate("x"),
+      List(KeyVar("y"), KeyVar("z"), KeyVar("d")),
+      (x: List[Any]) => x)
     println(myHeadAtom)
   }
 }
